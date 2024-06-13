@@ -1,0 +1,147 @@
+ SAP2000 v20.1.0 Ultimate 64-bit (Analysis Build 9626/64)                       
+ File: D:\Poli\ELEMENTOS FINITOS\Elemetos finitos\Losas\DKMT\losas\MODELO.OUT   
+                                                                     
+                                                                       
+
+ D I S P L A C E M E N T   D E G R E E S   O F   F R E E D O M
+
+         (A) = Active DOF, equilibrium equation
+         (-) = Restrained DOF, reaction computed
+         (+) = Constrained DOF
+         (>) = External substructure DOF
+         ( ) = Null DOF
+
+  JOINTS              UX  UY  UZ  RX  RY  RZ
+    1462 TO    1456    -   -   -   A   A   A
+    1453 TO    1417    A   A   A   A   A   A
+    1454               -   -   -   A   A   A
+    1450 TO    1415    A   A   A   A   A   A
+    1414               -   -   -   A   A   A
+    1444 TO    1376    A   A   A   A   A   A
+    1413               -   -   -   A   A   A
+    1412 TO    1374    A   A   A   A   A   A
+    1373               -   -   -   A   A   A
+    1411 TO    1335    A   A   A   A   A   A
+    1372               -   -   -   A   A   A
+    1371 TO    1334    A   A   A   A   A   A
+    1332               -   -   -   A   A   A
+    1366 TO    1301    A   A   A   A   A   A
+    1331               -   -   -   A   A   A
+    1328 TO    1294    A   A   A   A   A   A
+    1291               -   -   -   A   A   A
+    1330 TO    1253    A   A   A   A   A   A
+    1290               -   -   -   A   A   A
+    1289 TO    1255    A   A   A   A   A   A
+    1250               -   -   -   A   A   A
+    1288 TO    1211    A   A   A   A   A   A
+    1249               -   -   -   A   A   A
+    1246 TO    1210    A   A   A   A   A   A
+    1209               -   -   -   A   A   A
+    1217 TO    1172    A   A   A   A   A   A
+    1208               -   -   -   A   A   A
+    1207 TO    1169    A   A   A   A   A   A
+    1168               -   -   -   A   A   A
+    1196 TO    1130    A   A   A   A   A   A
+    1167               -   -   -   A   A   A
+    1166 TO    1128    A   A   A   A   A   A
+    1127               -   -   -   A   A   A
+    1165 TO    1094    A   A   A   A   A   A
+    1126               -   -   -   A   A   A
+    1118 TO    1087    A   A   A   A   A   A
+    1086               -   -   -   A   A   A
+    1125 TO    1048    A   A   A   A   A   A
+    1085               -   -   -   A   A   A
+    1084 TO    1046    A   A   A   A   A   A
+    1045               -   -   -   A   A   A
+    1057 TO    1008    A   A   A   A   A   A
+    1044               -   -   -   A   A   A
+    1043 TO    1007    A   A   A   A   A   A
+    1004               -   -   -   A   A   A
+    1027 TO    1005    A   A   A   A   A   A
+    1003               -   -   -   A   A   A
+    1000 TO     967    A   A   A   A   A   A
+     963               -   -   -   A   A   A
+    1002 TO     923    A   A   A   A   A   A
+     962               -   -   -   A   A   A
+     960 TO     929    A   A   A   A   A   A
+     922               -   -   -   A   A   A
+     924 TO     882    A   A   A   A   A   A
+     921               -   -   -   A   A   A
+     920 TO     883    A   A   A   A   A   A
+     881               -   -   -   A   A   A
+     888               A   A   A   A   A   A
+     880               -   -   -   A   A   A
+     879 TO     841    A   A   A   A   A   A
+     840               -   -   -   A   A   A
+     808 TO     802    A   A   A   A   A   A
+     839               -   -   -   A   A   A
+     838 TO     800    A   A   A   A   A   A
+     799               -   -   -   A   A   A
+     780 TO     762    A   A   A   A   A   A
+     798               -   -   -   A   A   A
+     797 TO     759    A   A   A   A   A   A
+     758               -   -   -   A   A   A
+     789 TO     721    A   A   A   A   A   A
+     757               -   -   -   A   A   A
+     752 TO     719    A   A   A   A   A   A
+     717               -   -   -   A   A   A
+     756 TO     640    A   A   A   A   A   A
+     716               -   -   -   A   A   A
+     714 TO     638    A   A   A   A   A   A
+     637 TO      52    -   -   -   A   A   A
+     503 TO     494    A   A   A   A   A   A
+     492 TO     357    -   -   -   A   A   A
+     352 TO      60    A   A   A   A   A   A
+     528 TO     358    -   -   -   A   A   A
+      97 TO      73    A   A   A   A   A   A
+     526 TO     360    -   -   -   A   A   A
+      95 TO      76    A   A   A   A   A   A
+     525               -   -   -   A   A   A
+     520 TO     366    A   A   A   A   A   A
+     361               -   -   -   A   A   A
+      94 TO      75    A   A   A   A   A   A
+     524               -   -   -   A   A   A
+     522 TO     364    A   A   A   A   A   A
+     363               -   -   -   A   A   A
+      93 TO     536    A   A   A   A   A   A
+     535               -   -   -   A   A   A
+     470 TO     465    A   A   A   A   A   A
+     427               -   -   -   A   A   A
+     425 TO     414    A   A   A   A   A   A
+     563               -   -   -   A   A   A
+     483 TO     450    A   A   A   A   A   A
+     428               -   -   -   A   A   A
+     568 TO     429    A   A   A   A   A   A
+     561               -   -   -   A   A   A
+     481 TO     448    A   A   A   A   A   A
+     430               -   -   -   A   A   A
+     553 TO     432    A   A   A   A   A   A
+     560               -   -   -   A   A   A
+     555 TO     433    A   A   A   A   A   A
+     431 TO     559    -   -   -   A   A   A
+     557 TO     544    A   A   A   A   A   A
+     238               -   -   -   A   A   A
+     236 TO     587    A   A   A   A   A   A
+     586 TO     239    -   -   -   A   A   A
+     138 TO     221    A   A   A   A   A   A
+     627 TO     240    -   -   -   A   A   A
+     182 TO     198    A   A   A   A   A   A
+     625 TO     242    -   -   -   A   A   A
+     180 TO     112    A   A   A   A   A   A
+     623 TO     243    -   -   -   A   A   A
+     178 TO     622    A   A   A   A   A   A
+     621               -   -   -   A   A   A
+     595 TO     246    A   A   A   A   A   A
+     245               -   -   -   A   A   A
+     186 TO     190    A   A   A   A   A   A
+     619 TO     247    -   -   -   A   A   A
+     174 TO     293    A   A   A   A   A   A
+     618 TO     249    -   -   -   A   A   A
+     173 TO     103    A   A   A   A   A   A
+     616 TO     251    -   -   -   A   A   A
+     171 TO     152    A   A   A   A   A   A
+     615               -   -   -   A   A   A
+     610 TO     601    A   A   A   A   A   A
+     252               -   -   -   A   A   A
+     170 TO     151    A   A   A   A   A   A
+     614 TO     153    -   -   -   A   A   A

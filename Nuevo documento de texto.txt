@@ -1,0 +1,5 @@
+https://la.mathworks.com/matlabcentral/fileexchange/99429-fem_educational_demos
+
+https://github.com/shahrokhx/FEM_Toolbox/blob/main/Source%20Code/PlaneStress%20PlaneStrain/lib/femGeneral.m
+
+https://github.com/JWock82/PyNite/blob/main/Derivations/MITC4%20Quad%20Element.ipynb
