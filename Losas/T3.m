@@ -12,8 +12,8 @@ nu=0.25;
 t=0.2;
 Lx=2;
 Ly=4;
-deltax=0.05*2;
-deltay=0.025*2;
+deltax=0.05*4;
+deltay=0.05*4;
 n=2;
 rho=2.3;
 
@@ -21,7 +21,7 @@ Nx=round(Lx/deltax,0);
 dv=round(Nx/n,0);
 Nx=dv*n+1;%% numero de nudos X
 
-Ny=round(round(Ly/deltay,0)/n,0);
+Ny=round(Ly/deltay,0);
 dv=round(Ny/n,0);
 Ny=dv*n+1;%% numero de nudos Y
 

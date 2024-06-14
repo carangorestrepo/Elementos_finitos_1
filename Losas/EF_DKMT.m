@@ -130,30 +130,24 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
     xe = xnod(LaG(e,:),X);       ye = xnod(LaG(e,:),Y);
     x21 = xe(2) - xe(1);         y21 = ye(2) - ye(1); 
     x32 = xe(3) - xe(2);         y32 = ye(3) - ye(2);
-    x31 = xe(3) - xe(1);         y31 = ye(3) - ye(1);    
+    x13 = xe(1) - xe(3);         y13 = ye(1) - ye(3);    
 
-    xji = [ x21 x32 x31];   yji = [ y21 y32 y31];   
+    xji = [ x21 x32 x13];   yji = [ y21 y32 y13];   
     
     Lk = hypot(xji, yji);      Ck =xji./Lk;      Sk = yji./Lk; %% figure 4
-    x1=xe(1);
-    x2=xe(2);
-    x3=xe(3);
     
-    y1=ye(1);
-    y2=ye(2);
-    y3=ye(3);
     
     C4=x21/hypot(x21,y21);
     C5=x32/hypot(x32,y32);
-    C6=x31/hypot(x31,y31);
+    C6=x13/hypot(x13,y13);
     
     S4=y21/hypot(x21,y21);
     S5=y32/hypot(x32,y32);
-    S6=y31/hypot(x31,y31);
+    S6=y13/hypot(x13,y13);
     
     L4=hypot(x21,y21);
     L5=hypot(x32,y32);
-    L6=hypot(x31,y31);
+    L6=hypot(x13,y13);
     
     phi4=(2/((5/6)*(1 - nu))) .* (h./L4).^2;
     phi5=(2/((5/6)*(1 - nu))) .* (h./L5).^2;
@@ -162,7 +156,7 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
     Area = det([ 1 xe(1) ye(1)          % Area del triangulo con vertices
                  1 xe(2) ye(2)          % (x1,y1), (x2,y2) y (x3,y3) numerados en el
                  1 xe(3) ye(3)])/2;     % sentido horario de las manecillas del reloj
-    Ae=(-x21*y31+x31*y21)/2;
+    Ae=(-x21*y13+x13*y21)/2;
     
    
     %% Ciclo sobre los puntos de Gauss para calcular Kbe, Kse y fe
@@ -264,7 +258,7 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
             % Ecuacion 44 %%%%%%
             Aw = [  1, -x21/2, -y21/2, -1, -x21/2, -y21/2,  0,      0,      0  
                     0,      0,      0,  1, -x32/2, -y32/2, -1, -x32/2, -y32/2
-                   -1, -x31/2, -y31/2,  0,      0,      0,  1, -x31/2, -y31/2];
+                   -1, -x13/2, -y13/2,  0,      0,      0,  1, -x13/2, -y13/2];
                               
             % Ecuacion 37
             An = A_dbeta\Aw;
@@ -278,31 +272,14 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
             L6_phi6 = Lk(3)*phi_k(3);    
                        
             % Ecuacion 23
-            %Bs_dbeta = (1/6)*[ -j11*(1-eta_gl)*L4_phi4    -j12*(1+xi_gl)*L5_phi5    j11*(1+eta_gl)*L6_phi6 
-            %                   -j21*(1-eta_gl)*L4_phi4    -j22*(1+xi_gl)*L5_phi5    j21*(1+eta_gl)*L6_phi6 ];
-        
+
             %Bs_dbeta =[[  (2*phi4*((S6*(eta_gl + xi_gl - 1))/(C4*S6 - C6*S4) - (S5*xi_gl)/(C4*S5 - C5*S4)))/3, -(2*phi5*((S6*eta_gl)/(C5*S6 - C6*S5) - (S4*xi_gl)/(C4*S5 - C5*S4)))/3, -(2*phi6*((S4*(eta_gl + xi_gl - 1))/(C4*S6 - C6*S4) - (S5*eta_gl)/(C5*S6 - C6*S5)))/3];
             %           [ -(2*phi4*((C6*(eta_gl + xi_gl - 1))/(C4*S6 - C6*S4) - (C5*xi_gl)/(C4*S5 - C5*S4)))/3,  (2*phi5*((C6*eta_gl)/(C5*S6 - C6*S5) - (C4*xi_gl)/(C4*S5 - C5*S4)))/3,  (2*phi6*((C4*(eta_gl + xi_gl - 1))/(C4*S6 - C6*S4) - (C5*eta_gl)/(C5*S6 - C6*S5)))/3]];
-            
-            %A1=C4*S6-C6*S4;
-            %A2=C5*S4-C4*S5;
-            %A3=C6*S5-C5*S6; 
-            %Bs1=[(S6*(1-xi_gl-eta_gl)/A1-S5*xi_gl/A2),(S4*xi_gl/A2-S6*eta_gl/A3),(S5*xi_gl/A3-S4*(1-xi_gl-eta_gl)/A1);
-             %   (C5*xi_gl/A2-C6*(1-xi_gl-eta_gl)/A1),(C6*eta_gl/A3-C4*xi_gl/A2),(C4*(1-xi_gl-eta_gl)/A1-C5*eta_gl/A3)];
-             
-             % 
-            %Bb_dbeta1 = 1/(2*Area) *[[                                                                                          4*cos4*(L6*eta_gl*sin6 - L6*sin6 + L4*sin4*xi_gl + 2*L6*sin6*xi_gl),                                              -4*cos5*(L6*eta_gl*sin6 + L4*sin4*xi_gl),                                                                                           4*cos6*(2*L4*eta_gl*sin4 - L4*sin4 + L6*eta_gl*sin6 + L4*sin4*xi_gl)];
-            %                        [                                                                                         -4*sin4*(L6*cos6*eta_gl - L6*cos6 + L4*cos4*xi_gl + 2*L6*cos6*xi_gl),                                               4*sin5*(L6*cos6*eta_gl + L4*cos4*xi_gl),                                                                                          -4*sin6*(2*L4*cos4*eta_gl - L4*cos4 + L6*cos6*eta_gl + L4*cos4*xi_gl)];
-            %                        [ 4*L6*cos4*cos6 - 4*L6*sin4*sin6 - 4*L4*cos4^2*xi_gl + 4*L4*sin4^2*xi_gl + 8*L6*sin4*sin6*xi_gl - 4*L6*cos4*cos6*eta_gl - 8*L6*cos4*cos6*xi_gl + 4*L6*eta_gl*sin4*sin6, 4*L6*cos5*cos6*eta_gl - 4*L4*sin4*sin5*xi_gl + 4*L4*cos4*cos5*xi_gl - 4*L6*eta_gl*sin5*sin6, 4*L4*cos4*cos6 - 4*L4*sin4*sin6 - 4*L6*cos6^2*eta_gl + 4*L6*eta_gl*sin6^2 + 4*L4*sin4*sin6*xi_gl - 8*L4*cos4*cos6*eta_gl - 4*L4*cos4*cos6*xi_gl + 8*L4*eta_gl*sin4*sin6]];
-
-            % Ecuacion 43
-            
-            %Bs_dbeta =[[ (2*L4*j11*phi4*(eta_gl - 1))/3 - (2*L4*j12*phi4*xi_gl)/3, (2*L5*eta_gl*j11*phi5)/3 - (2*L5*j12*phi5*xi_gl)/3, (2*L6*eta_gl*j11*phi6)/3 - (2*L6*j12*phi6*(xi_gl - 1))/3];
-            %           [ (2*L4*j21*phi4*(eta_gl - 1))/3 - (2*L4*j22*phi4*xi_gl)/3, (2*L5*eta_gl*j21*phi5)/3 - (2*L5*j22*phi5*xi_gl)/3, (2*L6*eta_gl*j21*phi6)/3 - (2*L6*j22*phi6*(xi_gl - 1))/3]];
-            Bs_dbeta =[[ j12*xi - j11*(eta - 1), 2^(1/2)*j12*xi - 2^(1/2)*eta*j11, eta*j11 - j12*(xi - 1)]
-                      [ j22*xi - j21*(eta - 1), 2^(1/2)*j22*xi - 2^(1/2)*eta*j21, eta*j21 - j22*(xi - 1)]];
+            % 
+            Bs_dbeta =[[ -(2*phi4*((xi_gl*y32)/(L5*((x21*y32)/(L4*L5) - (x32*y21)/(L4*L5))) + (y13*(eta_gl + xi_gl - 1))/(L6*((x13*y21)/(L4*L6) - (x21*y13)/(L4*L6)))))/3,  (2*phi5*((xi_gl*y21)/(L4*((x21*y32)/(L4*L5) - (x32*y21)/(L4*L5))) + (eta_gl*y13)/(L6*((x13*y32)/(L5*L6) - (x32*y13)/(L5*L6)))))/3,  (2*phi6*((y21*(eta_gl + xi_gl - 1))/(L4*((x13*y21)/(L4*L6) - (x21*y13)/(L4*L6))) - (eta_gl*y32)/(L5*((x13*y32)/(L5*L6) - (x32*y13)/(L5*L6)))))/3];
+                       [  (2*phi4*((x32*xi_gl)/(L5*((x21*y32)/(L4*L5) - (x32*y21)/(L4*L5))) + (x13*(eta_gl + xi_gl - 1))/(L6*((x13*y21)/(L4*L6) - (x21*y13)/(L4*L6)))))/3, -(2*phi5*((x21*xi_gl)/(L4*((x21*y32)/(L4*L5) - (x32*y21)/(L4*L5))) + (eta_gl*x13)/(L6*((x13*y32)/(L5*L6) - (x32*y13)/(L5*L6)))))/3, -(2*phi6*((x21*(eta_gl + xi_gl - 1))/(L4*((x13*y21)/(L4*L6) - (x21*y13)/(L4*L6))) - (eta_gl*x32)/(L5*((x13*y32)/(L5*L6) - (x32*y13)/(L5*L6)))))/3]];
  
-            %Bs2=Bs1*A_dbeta1^(-1)*Aw;
+
             Bs{e,pp} = Bs_dbeta*An;
 
             %% se arma la matriz de rigidez del elemento e por flexion (eq. 45)
