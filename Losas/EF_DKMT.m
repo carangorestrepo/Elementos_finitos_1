@@ -27,10 +27,10 @@ EFtype = DKMQ;
 X = 1; Y = 2; Z = 3; % un par de constantes que ayudaran en la 
 ww= 1; tx= 2; ty= 3; % lectura del codigo
 
-E  = 210000;       % [KPa]    modulo de elasticidad = 210GPa
+E  = 210000;       % [Pa]    modulo de elasticidad = 210GPa
 nu = 0.3;         %         coeficiente de Poisson
 h  = 0.05;        % [m]     espesor de la losa
-q  = -10;      % [KN/m^2] carga
+q  = -10;      % [N/m^2] carga
 
 % Definimos la geometria de la losa
 %losa
@@ -62,60 +62,50 @@ title('Malla de elementos finitos');
 %% Parametros de la cuadratura de Gauss-Legendre
 % se asumira aqui el mismo orden de la cuadratura tanto en la direccion de
 % xi como en la direccion de eta
-%n_gl = 2;                 % orden de la cuadratura de Gauss-Legendre
+n         = 4; % orden de la cuadratura de Gauss-Legendre
 %[x_gl, w_gl] = gausslegendre_quad(n_gl);
-n=4;
-
 xw=TriGaussPoints(n);
 
 x_gl = xw(:,1);
-%x_gl = [1/2;1/2;0];
 e_gl = xw(:,2);
-%e_gl = [0;1/2;1/2];
 w_gl =  xw(:,3);
-%w_gl =  [1/6;1/6;1/6];
 n_gl = size(x_gl,1);  %# Número de puntos de Gauss.
-
 
 %% Se leen las funciones de forma N y P y sus derivadas dN_dxi, dN_deta, 
 %  dP_dxi, dP_deta
-%% Funciones de forma principales del elemento finito Table 1 (eq 17)
-Nforma = @(xi,eta) [1-xi-eta        % N1
-                    xi             % N2
-                    eta    ];      % N3
-
-%% Derivadas de N con respecto a xi    
-dN_dxi = @(xi,eta) [ -1
-                     1
-                     0];
-                        
-%% Derivadas de N con respecto a eta    
-dN_deta = @(xi,eta) [ -1
-                      0
-                      1];          
-
 %% Funciones de forma secundarias del elemento finito
-Pforma = @(xi,eta) [4*(1-xi-eta)*xi      % P1
-                    4*xi*eta             % P2
-                    4*(1-xi-eta)*eta];   % P3
 
-%% Derivadas de P con respecto a xi
-dP_dxi = @(xi,eta) [ 4 - 8*xi - 4*eta
-                        4*eta
-                       -4*eta];
-%% Derivadas de P con respecto a eta    
-dP_deta = @(xi,eta) [-4*xi
-                    4*xi
-                    4 - 4*xi - 8*eta]; 
+Nforma = @(xi,eta) [1-xi-eta       % N1
+                    xi             % N2
+                    eta];          % N3             
+dN_dxi=@(xi,eta)[ -1
+                   1
+                   0];
+               
+dN_deta= @(xi,eta)[ -1
+                     0
+                     1]; 
+                 
+Pforma = @(xi,eta)[4*(1-xi-eta)*xi       % P1
+                   4*xi*eta              % P2
+                   4*(1-xi-eta)*eta];    % P3
+ 
+dP_dxi  =@(xi,eta)[ 4 - 8*xi - 4*eta
+                    4*eta
+                    -4*eta];    
+
+dP_deta=@(xi,eta)[-4*xi
+                   4*xi
+                   4 - 4*xi - 8*eta];       
 
 %% matrices constitutivas
-Db = (E*h^3/(12*(1-nu^2)));   % plate rigidity eq 7
+Db = (E*h^3/(12*(1-nu^2)));   % plate rigidity
 Hb = Db * [ 1  nu 0           % matriz constitutiva de flexion generalizada
             nu 1  0           % (Dbe en la nomenclatura del curso) 
             0  0  (1-nu)/2 ]; 
 
 G  = E/(2*(1+nu));     % modulo de cortante
-Hs = (5/6)*G*h*eye(2); % matriz constitutiva de cortante generalizada (Dse) eq 9
+Hs = (5/6)*G*h*eye(2); % matriz constitutiva de cortante generalizada (Dse)
 
 %% ensamblo la matriz de rigidez global y el vector de fuerzas nodales
 %  equivalentes global
@@ -132,45 +122,31 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
     x32 = xe(3) - xe(2);         y32 = ye(3) - ye(2);
     x13 = xe(1) - xe(3);         y13 = ye(1) - ye(3);    
 
-    xji = [ x21 x32 x13];   yji = [ y21 y32 y13];   
+    xji = [ x21 x32 x13  ];   yji = [ y21 y32 y13 ];   
     
-    Lk = hypot(xji, yji);      Ck =xji./Lk;      Sk = yji./Lk; %% figure 4
+    Lk = hypot(xji, yji);      Ck =xji./Lk;      Sk = yji./Lk;
+    L4=Lk(1);
+    L5=Lk(2);
+    L6=Lk(2);
     
+    C4=Ck(1);
+    C5=Ck(2);
+    C6=Ck(3);
+    S4=Sk(1); 
+    S5=Sk(2);
+    S6=Sk(3);
     
-    C4=x21/hypot(x21,y21);
-    C5=x32/hypot(x32,y32);
-    C6=x13/hypot(x13,y13);
-    
-    S4=y21/hypot(x21,y21);
-    S5=y32/hypot(x32,y32);
-    S6=y13/hypot(x13,y13);
-    
-    L4=hypot(x21,y21);
-    L5=hypot(x32,y32);
-    L6=hypot(x13,y13);
-    
-    phi4=(2/((5/6)*(1 - nu))) .* (h./L4).^2;
-    phi5=(2/((5/6)*(1 - nu))) .* (h./L5).^2;
-    phi6=(2/((5/6)*(1 - nu))) .* (h./L6).^2;
-    
-    Area = det([ 1 xe(1) ye(1)          % Area del triangulo con vertices
-                 1 xe(2) ye(2)          % (x1,y1), (x2,y2) y (x3,y3) numerados en el
-                 1 xe(3) ye(3)])/2;     % sentido horario de las manecillas del reloj
-    Ae=(-x21*y13+x13*y21)/2;
-    
-   
     %% Ciclo sobre los puntos de Gauss para calcular Kbe, Kse y fe
-    Kbe = zeros(9);%%
-    Kse = zeros(9);%%
-    fe  = zeros(9,1);%%
+    Kbe = zeros(9);
+    Kse = zeros(9);
+    fe  = zeros(9,1);
     det_Je = zeros(n_gl,1); % almacenara los Jacobianos
     
     for pp = 1:n_gl
-        %for qq = 1:n_gl           
+       % for qq = 1:n_gl           
             %% Se evaluan las funciones de forma y sus derivadas en los 
             % puntos de Gauss
-            xi_gl  = x_gl(pp);            
-            eta_gl = e_gl(pp);
+            xi_gl  = x_gl(pp);            eta_gl = e_gl(pp);
 
             NN       = Nforma (xi_gl, eta_gl);
             ddN_dxi  = dN_dxi (xi_gl, eta_gl);       
@@ -192,21 +168,16 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
             j21 = inv_Je(2,1);              j22 = inv_Je(2,2);                       
                 
             % y su determinante (el Jacobiano)
-            %det_Je(pp,qq) = det(Je);
             det_Je(pp) = det(Je);
+            
             %% Se ensambla la matriz de funciones de forma N
-            %N{e,pp,qq} = zeros(3,9);  
-            N{e,pp} = zeros(3,9);  
+            N{e,pp} = zeros(3,9);            
             for i = 1:3
-                %N{e,pp,qq}(:,[3*i-2 3*i-1 3*i]) = diag([NN(i), NN(i), NN(i)]);
                 N{e,pp}(:,[3*i-2 3*i-1 3*i]) = diag([NN(i), NN(i), NN(i)]);
             end            
             
             %% Se calcula Bb_beta (ecuacion 12)
-            %Bb_beta =1/(2*Area)*[[ 0, -y32,    0, 0, -y13,    0, 0, -y21,    0];
-            %                     [ 0,    0,  x32, 0,    0,  x13, 0,    0,  x21];
-            %                     [ 0,  x32, -y32, 0,  x13, -y13, 0,  x21, -y21]];
-            Bb_beta=zeros(3,9);
+            Bb_beta = zeros(3,9);
             for i = 1:3                
                 dNi_dx = j11*ddN_dxi(i) + j12*ddN_deta(i); % = ai
                 dNi_dy = j21*ddN_dxi(i) + j22*ddN_deta(i); % = bi               
@@ -214,7 +185,9 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
                                                  0         0    dNi_dy
                                                  0    dNi_dy    dNi_dx ];
             end
-            Bb_dbeta = zeros(3,3);  
+            
+            %% Se calcula Bb_dbeta (ecuacion 13)
+            Bb_dbeta = zeros(3,3);            
             for k = 1:3            
                 dPk_dx = j11*ddP_dxi(k) + j12*ddP_deta(k);
                 dPk_dy = j21*ddP_dxi(k) + j22*ddP_deta(k);
@@ -222,20 +195,15 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
                                   dPk_dy*Sk(k)
                                   dPk_dy*Ck(k) + dPk_dx*Sk(k) ];
             end
-            %% Se calcula Bb_dbeta (ecuacion 13)
-            Bb_dbeta = zeros(3,3);            
-            %for k = 1:3            
-            %    dPk_dx = y13*ddP_dxi(k) + y21*ddP_deta(k);
-            %    dPk_dy = x13*ddP_dxi(k) + x21*ddP_deta(k);
-            %    Bb_dbeta(:,k) = 1/(2*Area)*[ -dPk_dx*Ck(k)
-            %                                  dPk_dy*Sk(k)
-            %                                  dPk_dy*Ck(k) - dPk_dx*Sk(k) ];
-            %end
+            
             %% Se calcula An
             % Ecuacion 22b          
             switch EFtype
                 case DKMQ
                     phi_k = (2/((5/6)*(1 - nu))) .* (h./Lk).^2;
+                    phi4=phi_k(1);
+                    phi5=phi_k(2);
+                    phi6=phi_k(3);
                 case DKQ
                     phi_k = zeros(1,4);
                     % Esto de acuerdo con el articulo
@@ -244,21 +212,17 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
                     % new numerical results based on s-norm tests. 
                     % Computers & Structures, Volume 204, Pages 48-64,
                     % https://doi.org/10.1016/j.compstruc.2018.04.001.
-                    
                 otherwise
                     error('Tipo de EF de losa no soportado');
             end
             
-            % Ecuacion 43
+            % Ecuacion 38
             A_dbeta = diag((2/3) * Lk .* (1+phi_k));
-            A_dbeta1 =2/3*[L4*(1+phi4)            0           0;
-                                     0  L5*(1+phi5)           0; 
-                                     0           0  L6*(1+phi6)];
-                                 
-            % Ecuacion 44 %%%%%%
-            Aw = [  1, -x21/2, -y21/2, -1, -x21/2, -y21/2,  0,      0,      0  
-                    0,      0,      0,  1, -x32/2, -y32/2, -1, -x32/2, -y32/2
-                   -1, -x13/2, -y13/2,  0,      0,      0,  1, -x13/2, -y13/2];
+            
+            % Ecuacion 39
+            Aw = [[  1, -x21/2, -y21/2, -1, -x21/2, -y21/2,  0,      0,      0]
+                  [  0,      0,      0,  1, -x32/2, -y32/2, -1, -x32/2, -y32/2]
+                   [ -1, -x13/2, -y13/2,  0,      0,      0,  1, -x13/2, -y13/2]];
                               
             % Ecuacion 37
             An = A_dbeta\Aw;
@@ -267,31 +231,26 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
             Bb{e,pp} = Bb_beta + Bb_dbeta*An;
             
             %% Se calcula la matriz de deformacion por cortante Bs
-            L4_phi4 = Lk(1)*phi_k(1);    
-            L5_phi5 = Lk(2)*phi_k(2);
-            L6_phi6 = Lk(3)*phi_k(3);    
+            L5_phi5 = Lk(1)*phi_k(1);    
+            L6_phi6 = Lk(2)*phi_k(2);
+            L7_phi7 = Lk(3)*phi_k(3);    
+            %L8_phi8 = Lk(4)*phi_k(4);
                        
-            % Ecuacion 23
-
-            %Bs_dbeta =[[  (2*phi4*((S6*(eta_gl + xi_gl - 1))/(C4*S6 - C6*S4) - (S5*xi_gl)/(C4*S5 - C5*S4)))/3, -(2*phi5*((S6*eta_gl)/(C5*S6 - C6*S5) - (S4*xi_gl)/(C4*S5 - C5*S4)))/3, -(2*phi6*((S4*(eta_gl + xi_gl - 1))/(C4*S6 - C6*S4) - (S5*eta_gl)/(C5*S6 - C6*S5)))/3];
-            %           [ -(2*phi4*((C6*(eta_gl + xi_gl - 1))/(C4*S6 - C6*S4) - (C5*xi_gl)/(C4*S5 - C5*S4)))/3,  (2*phi5*((C6*eta_gl)/(C5*S6 - C6*S5) - (C4*xi_gl)/(C4*S5 - C5*S4)))/3,  (2*phi6*((C4*(eta_gl + xi_gl - 1))/(C4*S6 - C6*S4) - (C5*eta_gl)/(C5*S6 - C6*S5)))/3]];
-            % 
-            Bs_dbeta =[[ -(2*phi4*((xi_gl*y32)/(L5*((x21*y32)/(L4*L5) - (x32*y21)/(L4*L5))) + (y13*(eta_gl + xi_gl - 1))/(L6*((x13*y21)/(L4*L6) - (x21*y13)/(L4*L6)))))/3,  (2*phi5*((xi_gl*y21)/(L4*((x21*y32)/(L4*L5) - (x32*y21)/(L4*L5))) + (eta_gl*y13)/(L6*((x13*y32)/(L5*L6) - (x32*y13)/(L5*L6)))))/3,  (2*phi6*((y21*(eta_gl + xi_gl - 1))/(L4*((x13*y21)/(L4*L6) - (x21*y13)/(L4*L6))) - (eta_gl*y32)/(L5*((x13*y32)/(L5*L6) - (x32*y13)/(L5*L6)))))/3];
-                       [  (2*phi4*((x32*xi_gl)/(L5*((x21*y32)/(L4*L5) - (x32*y21)/(L4*L5))) + (x13*(eta_gl + xi_gl - 1))/(L6*((x13*y21)/(L4*L6) - (x21*y13)/(L4*L6)))))/3, -(2*phi5*((x21*xi_gl)/(L4*((x21*y32)/(L4*L5) - (x32*y21)/(L4*L5))) + (eta_gl*x13)/(L6*((x13*y32)/(L5*L6) - (x32*y13)/(L5*L6)))))/3, -(2*phi6*((x21*(eta_gl + xi_gl - 1))/(L4*((x13*y21)/(L4*L6) - (x21*y13)/(L4*L6))) - (eta_gl*x32)/(L5*((x13*y32)/(L5*L6) - (x32*y13)/(L5*L6)))))/3]];
- 
-
+            % Ecuacion 27
+            Bs_dbeta = [[  (2*phi4*((S6*(eta_gl + xi_gl - 1))/(C4*S6 - C6*S4) - (S5*xi_gl)/(C4*S5 - C5*S4)))/3, -(2*phi5*((S6*eta_gl)/(C5*S6 - C6*S5) - (S4*xi_gl)/(C4*S5 - C5*S4)))/3, -(2*phi6*((S4*(eta_gl + xi_gl - 1))/(C4*S6 - C6*S4) - (S5*eta_gl)/(C5*S6 - C6*S5)))/3];
+                        [ -(2*phi4*((C6*(eta_gl + xi_gl - 1))/(C4*S6 - C6*S4) - (C5*xi_gl)/(C4*S5 - C5*S4)))/3,  (2*phi5*((C6*eta_gl)/(C5*S6 - C6*S5) - (C4*xi_gl)/(C4*S5 - C5*S4)))/3,  (2*phi6*((C4*(eta_gl + xi_gl - 1))/(C4*S6 - C6*S4) - (C5*eta_gl)/(C5*S6 - C6*S5)))/3]];
+            
+            % Ecuacion 43
             Bs{e,pp} = Bs_dbeta*An;
-
+            
             %% se arma la matriz de rigidez del elemento e por flexion (eq. 45)
-            %Kbe = Kbe + Bb{e,pp,qq}'*Hb*Bb{e,pp,qq}*det_Je(pp,qq)*w_gl(pp)*w_gl(qq);
+            Kbe = Kbe + Bb{e,pp}'*Hb*Bb{e,pp}*det_Je(pp)*w_gl(pp);
             
-            Kbe = Kbe +Bb{e,pp}'*Hb*Bb{e,pp}*det_Je(pp)*w_gl(pp);
             %% se arma la matriz de rigidez del elemento e por cortante (eq. 47)
-            Kse = Kse +Bs{e,pp}'*Hs*Bs{e,pp}*det_Je(pp)*w_gl(pp);
+            Kse = Kse + Bs{e,pp}'*Hs*Bs{e,pp}*det_Je(pp)*w_gl(pp);
             
             %% vector de fuerzas nodales equivalentes        
-            %% vector de fuerzas nodales equivalentes        
-            if (xe(1) >= 0 && xe(2) <=2) && ...
+            if (xe(1) >= 0 && xe(2) <= 2) && ...
                (ye(2) >= 0 && ye(3) <= 4)
                 fe = fe + N{e,pp}'*[q 0 0]'*det_Je(pp)*w_gl(pp);
             end
@@ -304,7 +263,7 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
     end
     
     %% ensamblaje matricial
-    idx{e} = [ gdl(LaG(e,1),:) gdl(LaG(e,2),:) gdl(LaG(e,3),:) ];    
+    idx{e} = [ gdl(LaG(e,1),:) gdl(LaG(e,2),:) gdl(LaG(e,3),:)];    
     K(idx{e},idx{e}) = K(idx{e},idx{e}) + Kbe + Kse;
     f(idx{e},:)      = f(idx{e},:)      + fe;
 end
@@ -373,7 +332,9 @@ view(3)
 MxMyMxy = cell(nef,n_gl,n_gl);
 for e = 1:nef
     for pp = 1:n_gl
+        %for qq = 1:n_gl
             MxMyMxy{e,pp} = Hb*Bb{e,pp}*aa(idx{e});
+        %end
     end
 end
 
@@ -383,7 +344,9 @@ if EFtype == DKMQ
     QxQy = cell(nef,n_gl,n_gl);
     for e = 1:nef
         for pp = 1:n_gl
+            %for qq = 1:n_gl
                 QxQy{e,pp} = Hs*Bs{e,pp}*aa(idx{e});
+            %end
         end
     end
 end
@@ -396,13 +359,9 @@ Mxy = zeros(nno,1);
 Qx  = zeros(nno,1);
 Qy  = zeros(nno,1);
 
-A =[0.126340726488392,-0.638559587411924,-0.638559587411923,1.87365927351158,0.138559587411936,0.138559587411936;
+    A =[0.126340726488392,-0.638559587411924,-0.638559587411923,1.87365927351158,0.138559587411936,0.138559587411936;
         -0.638559587411907,-0.638559587411945,0.126340726488378,0.138559587411937,0.138559587411936,1.87365927351160;
         -0.638559587411908,0.126340726488377,-0.638559587411944,0.138559587411937,1.87365927351160,0.138559587411936];
-
-%A =[1.66666666666668,-0.333333333333340,-0.333333333333340;
-%    -0.333333333333320,-0.333333333333340,1.66666666666666;
-%    -0.333333333333320,1.66666666666666,-0.333333333333340];
 
 for e = 1:nef  
     Mx1=[MxMyMxy{e,:,:}];
@@ -425,7 +384,7 @@ if EFtype == DKMQ
         Qy1=[QxQy{e,:,:}];
         Qy(LaG(e,:),:) = Qy(LaG(e,:),:)   + A *   Qy1(2,:)';
     end
-end  
+end 
  
 %% Alisado (promedio de los momentos y cortantes en los nodos)
 Mx  =  Mx./num_elem_ady;  

@@ -120,9 +120,9 @@ Bs = invJ*Ng_Ag_Au
 disp('************************************************************************')
 disp('EQUATIONS Bs BATHE-DVORKIN')
 clear
-syms r s
+syms r s eta xi 
 syms w1 tx1 ty1 w2 tx2 ty2 w3 tx3 ty3 w4 tx4 ty4 
-syms x14 x21 x32 x43 y14 y21 y32 y43 
+syms x14 x21 x32 x43 y14 y21 y32 y43 x13 y13
 
 %{
 eq_grz = (1+s)*((w1 - w2)/2 + ((x1 - x2)/4)*(ty1 + ty2) - ((y1 - y2)/4)*(tx1 + tx2)) + ...
@@ -151,7 +151,7 @@ B3=[ 0,1/2*x21*eta      ,1/2*y21*eta;
 j=1/(2*A)*[-y13,-y21;
             x13,x21];
 gama=[B1,B3,B3];
-Bs=j*gama 
+Bs1=j*gama 
 
 
 
