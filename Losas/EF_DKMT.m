@@ -69,7 +69,7 @@ xw=TriGaussPoints(n);
 x_gl = xw(:,1);
 e_gl = xw(:,2);
 w_gl =  xw(:,3);
-n_gl = size(x_gl,1);  %# Número de puntos de Gauss.
+n_gl = size(e_gl,1);  %# Número de puntos de Gauss.
 
 %% Se leen las funciones de forma N y P y sus derivadas dN_dxi, dN_deta, 
 %  dP_dxi, dP_deta

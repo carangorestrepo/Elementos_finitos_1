@@ -140,11 +140,11 @@ dir_desp=[ones(Nx,1);2*ones(Nx,1)];%% defino direcion de desplazamiento
 ac=[zeros(Nx,1);zeros(Nx,1)];% desplazamientos conocidos en los apoyos
 
 %% defino cargas
-carga=4300/43;
+carga=4300/45;
 cp=ones(Ny,1)*carga;%5 carga a aplicar por nodo
 
-dir_cp=ones(Ny,1)*2;%% direccion carga
-idxNODOp=Nudosg(:,1);%% nudos donde se aplica carga
+dir_cp=ones(Ny,1)*1;%% direccion carga
+idxNODOp=Nudosg(45,:)';%% nudos donde se aplica carga
 
 
 %% cargas sitribuidas 

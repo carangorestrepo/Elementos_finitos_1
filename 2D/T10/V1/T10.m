@@ -11,7 +11,7 @@ t=0.2;
 Lx=2;
 Ly=2;
 deltax=0.05;
-deltay=0.025;
+deltay=0.05;
 n=2;
 rho=0;
 
@@ -19,7 +19,7 @@ Nx=round(Lx/deltax,0);
 dv=round(Nx/n,0);
 Nx=dv*n+3;%% numero de nudos X
 
-Ny=round(round(Ly/deltay,0)/n,0);
+Ny=round(Ly/deltay,0);
 dv=round(Ny/n,0);
 Ny=dv*n+3;%% numero de nudos Y
 
@@ -150,8 +150,8 @@ ac=[zeros(Nx,1);zeros(Nx,1)];% desplazamientos conocidos en los apoyos
 carga=4300/43;
 cp=ones(Ny,1)*carga;%5 carga a aplicar por nodo
 
-dir_cp=ones(Ny,1)*2;%% direccion carga
-idxNODOp=Nudosg(:,1);%% nudos donde se aplica carga
+dir_cp=ones(Ny,1)*1;%% direccion carga
+idxNODOp=Nudosg(43,:)';%% nudos donde se aplica carga
 
 
 %% cargas sitribuidas 

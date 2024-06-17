@@ -1,15 +1,15 @@
- %%------------------------------------------------------------------------------
-% NOTA: este cÃ³digo SOLO es apropiado para TENSION PLANA usando elementos
-%       rectangulares serendÃ­pitos de 8 nodos
+%%------------------------------------------------------------------------------
+% NOTA: este código SOLO es apropiado para TENSION PLANA usando elementos
+%       rectangulares serendípitos de 8 nodos
 %-------------------------------------------------------------------------------
 %
-% Programa para el cÃ¡lculo de los desplazamientos y las reacciones en los 
-% apoyos, las deformaciones y los esfuerzos de la un sÃ³lido mediante el mÃ©todo 
+% Programa para el cálculo de los desplazamientos y las reacciones en los 
+% apoyos, las deformaciones y los esfuerzos de la un sólido mediante el método 
 % de los elementos finitos
 
 %clear, clc, close all   % borro la memoria, la pantalla y las figuras
 
-%% constantes que ayudarÃ¡n en la lectura del cÃ³digo
+%% constantes que ayudarán en la lectura del código
 X = 1; Y = 2;
 
 %% se define la estructura a calcular
@@ -24,7 +24,7 @@ X = 1; Y = 2;
 %T = leer_excel(archivo_xlsx, 'xnod');
 %idxNODO         = T{:,'nodo'};
 %xnod(idxNODO,:) = T{:,{'x','y'}};
-nno             = size(xnod,1);   % nÃºmero de nodos
+nno             = size(xnod,1);   % número de nodos
 
 %% Se definen los grados de libertad
 ngdl = 2*nno;        % numero de grados de libertad (dos por nodo)
@@ -33,7 +33,7 @@ gdl  = [(1:2:ngdl)' (2:2:ngdl)']; % nodos vs grados de libertad
 %% se lee la matriz de conectividad (LaG) y el tipo de material del EF e
 %T = leer_excel(archivo_xlsx, 'LaG_mat');
 %idxEF        = T{:,'EF'};
-%LaG(idxEF,:) = T{:,{'NL1','NL2','NL3','NL4','NL5','NL6','NL7','NL8'}};
+%LaG(idxEF,:) = T{:,{'NL1','NL2','NL3','NL4','NL5','NL6'}};
 %mat          = T{:,'material'};% tipo de material para cada EF
 %nef          = size(LaG,1);    % numero de EFs (numero de filas de LaG)
 
@@ -91,18 +91,17 @@ text(xnod(:,X), xnod(:,Y), num2str((1:nno)'));
 axis equal tight
 title('Malla de elementos finitos');
 
-%% Func. de forma y sus derivadas del EF rectangular serendÃ­pito de 8 nodos
+%% Func. de forma y sus derivadas del EF rectangular serendípito de 8 nodos
 % NOTA estas funciones de forma y sus derivadas se encontraron con el
-% programa deduccion_funciones_forma/FF_serendipitos_T10.m
-
- Nforma =  @(xi, eta) [
+% programa deduccion_funciones_forma/FF_serendipitos_Q4_Q8.m
+Nforma = @(xi,eta) [ ...
  (eta + xi - 1)*(2*eta + 2*xi - 1)
                      xi*(2*xi - 1)
                    eta*(2*eta - 1)
             -xi*(4*eta + 4*xi - 4)
                           4*eta*xi
-           -eta*(4*eta + 4*xi - 4) 
-                             ];
+           -eta*(4*eta + 4*xi - 4)             
+];  % N8
 
 %% Derivadas de N con respecto a xi
 dN_dxi = @(xi,eta) [ ...
@@ -112,7 +111,7 @@ dN_dxi = @(xi,eta) [ ...
  4 - 8*xi - 4*eta
             4*eta
            -4*eta                          
-];  % dN8_dxi   
+];  % dN8_dxi
 
 %% Derivadas de N con respecto a eta
 dN_deta = @(xi,eta) [ ...
@@ -125,24 +124,22 @@ dN_deta = @(xi,eta) [ ...
 ];  % dN8_deta
 
 %% Parametros de la cuadratura de Gauss-Legendre
-% se calculan las raices x_gl y los pesos w_gl de polinomios de Legendre
-n         = 3; % orden de la cuadratura de Gauss-Legendre
+% se asumira aqui el mismo orden de la cuadratura tanto en la direccion de
+% xi como en la direccion de eta
+n         = 4; % orden de la cuadratura de Gauss-Legendre
 %[x_gl, w_gl] = gausslegendre_quad(n_gl);
 xw=TriGaussPoints(n);
+
 x_gl = xw(:,1);
-%x_gl = [1/2;1/2;0];
 e_gl = xw(:,2);
-%e_gl=[1/2;0;1/2];
 w_gl =  xw(:,3);
-%w_gl =[1/3;1/3;1/3];
 n_gl = size(x_gl,1);  %# Número de puntos de Gauss.
 
 %% se ensambla la matriz de rigidez global y el vector de fuerzas nodales
 %  equivalentes global
-K   = zeros(ngdl,ngdl);   % matriz de rigidez global como RALA (sparse)
-M   = sparse(ngdl,ngdl);   % matriz de masa global como RALA (sparse)
-N   = cell(nef,n_gl,3,2*6); % contenedor para las matrices de forma
-B   = cell(nef,n_gl,3,2*6); % contenedor para las matrices de deformacion
+K   = sparse(ngdl,ngdl);   % matriz de rigidez global como RALA (sparse)
+N   = cell(nef,n_gl,n_gl); % contenedor para las matrices de forma
+B   = cell(nef,n_gl,n_gl); % contenedor para las matrices de deformacion
 idx = cell(nef,1);         % indices asociados a los gdl del EF e
 
 % se calcula la matriz constitutiva y el vector de fuerzas mÃ¡sicas para cada material
@@ -163,7 +160,6 @@ for e = 1:nef
    % fuerzas nodales equivalentes del elemento usando las cuadraturas de GL
    Ke = zeros(6*2);
    fe = zeros(6*2,1);
-   Me=  zeros(6*2,1);
    det_Je = zeros(n_gl,1); % matriz para almacenar los jacobianos
 
    % se determinan las coordenadas de los nodos el EF e
@@ -171,7 +167,7 @@ for e = 1:nef
    ye = xnod(LaG(e,:),Y);
 
    for p = 1:n_gl
-
+      %for q = 1:n_gl
          xi_gl  = x_gl(p);
          eta_gl = e_gl(p);
          
@@ -191,7 +187,7 @@ for e = 1:nef
          % Se calcula el determinante del Jacobiano
          det_Je(p) = det(Je);
          
-         % las matrices de forma y de deformaciÃ³n se evalÃºan y se ensamblan
+         % las matrices de forma y de deformación se evalúan y se ensamblan
          % en el punto de Gauss         
          N{e,p} = zeros(2, 2*6);
          B{e,p} = zeros(3, 2*6);
@@ -205,16 +201,16 @@ for e = 1:nef
             dNi_dy = (-dx_deta*ddN_dxi(i) + dx_dxi*ddN_deta(i))/det_Je(p);
             B{e,p}(:,[2*i-1 2*i]) = [ dNi_dx       0        
                                              0  dNi_dy   
-                                      dNi_dy  dNi_dx ];
+                                        dNi_dy  dNi_dx ];
          end
 
          % se ensamblan la matriz de rigidez del EF e y el vector de fuerzas
-         % nodales equivalentes del EF e asociado a la fuerza mÃ¡sica         
+         % nodales equivalentes del EF e asociado a la fuerza másica         
          Ke = Ke + B{e,p}'*De{mat(e)}*B{e,p} * det_Je(p)*t(mat(e))*w_gl(p);
          fe = fe + N{e,p}'*be{mat(e)}        * det_Je(p)*t(mat(e))*w_gl(p);
-         Me = Me + N{e,p}'*rho *N{e,p}       * det_Je(p)*t(mat(e))*w_gl(p);
-    end
-
+      %end
+   end
+   
    % se determina si hay puntos con jacobiano negativo, en caso tal se termina
    % el programa y se reporta   
    if any(any(det_Je <= 0))
@@ -224,14 +220,8 @@ for e = 1:nef
    % y se ensambla la matriz de rigidez del elemento y el vector de fuerzas
    % nodales del elemento en sus correspondientes GDL 
    idx{e}           = reshape(gdl(LaG(e,:),:)', 1, 6*2);
-   %idx{e} = [ gdl(LaG(e,1),:)  gdl(LaG(e,2),:) ...
-   %          gdl(LaG(e,3),:)  gdl(LaG(e,4),:) ...
-   %          gdl(LaG(e,5),:)  gdl(LaG(e,6),:) ...
-   %          gdl(LaG(e,7),:)  gdl(LaG(e,8),:) gdl(LaG(e,9),:) ];
-   
    K(idx{e},idx{e}) = K(idx{e},idx{e}) + Ke;
    f(idx{e},:)      = f(idx{e},:)      + fe;
-   M(idx{e},idx{e}) = M(idx{e},idx{e}) + Me;
 end
 
 %% Muestro la configuracion de la matriz K (K es rala)
@@ -266,17 +256,17 @@ f = f + ft;
 %kwinkl  = T{:,{'kix','kiy', 'kjx','kjy', 'kkx','kky'}};
 %nlkW    = size(kwinkl,1); % numero de lados con cimentacion elastica
 
-%% CÃ¡lculo de las rigideces asociadas a la cimentaciÃ³n elÃ¡stica
+%% Cálculo de las rigideces asociadas a la cimentación elástica
 %for i = 1:nlkW
 %   e = idxELEM(i);
-%   LaG_e = LaG(e,1:8);
+%   LaG_e = LaG(e,1:6);
 %   He = Hwinkler_8(xnod(LaG_e,[X Y]), LaG_e, nodoijk(i,:), kwinkl(i,:), t(mat(e)));
 %   K(idx{e},idx{e}) = K(idx{e},idx{e}) + He;
 %end
 
 %% se definen los apoyos y sus desplazamientos
 %T = leer_excel(archivo_xlsx, 'restric');
-%idxNODOr  = T{:,'nodo'};
+%idxNODO  = T{:,'nodo'};
 %dir_desp = T{:,'direccion'};
 
 % grados de libertad del desplazamiento conocidos  
@@ -330,15 +320,18 @@ legend('Posicion original','Posicion deformada','Location', 'SouthOutside');
 title(sprintf('Deformada escalada %d veces', ESC_UV));
 
 %% Se calcula para cada elemento las deformaciones y los esfuerzos
-def = cell(nef,n_gl,3);
-esf = cell(nef,n_gl,3);
+def = cell(nef,n_gl,n_gl);
+esf = cell(nef,n_gl,n_gl);
 
 for e = 1:nef
    % desplazamientos de los gdl del elemento e
    ae = a(idx{e});
+   
    for pp = 1:n_gl
+      for qq = 1:n_gl
          def{e,pp} = B{e,pp}*ae;           % calculo las deformaciones
          esf{e,pp} = De{mat(e)}*def{e,pp}; % calculo los esfuerzos
+      end
    end
 end
 
@@ -365,27 +358,23 @@ ang  = 0.5*atan2(2*txy, sx-sy);      % angulo de inclinacion de s1
 s3   = zeros(nno,1);
 sv   = sqrt(((s1-s2).^2 + (s2-s3).^2 + (s1-s3).^2)/2); % von Mises
 
-sxx=reshape(sx,[Ny,Nx]);
-
-syy=reshape(sy,[Ny,Nx]);
-txyy=reshape(txy,[Ny,Nx]);
 %% Se reportan los resultados en un archivo .xlsx
-%tabla_aq = array2table([(1:nno)', reshape(a,2,nno)', reshape(q,2,nno)'], ...
-%    'VariableNames', {'nodo', ['u_' U_LONG], 'v', ['qx_' U_FUERZA], 'qy'});
+tabla_aq = array2table([(1:nno)', reshape(a,2,nno)', reshape(q,2,nno)'], ...
+    'VariableNames', {'nodo', ['u_' U_LONG], 'v', ['qx_' U_FUERZA], 'qy'});
 
-%tabla_def = array2table([(1:nno)', ex, ey, ez, gxy], ...
-%    'VariableNames', {'nodo', 'ex', 'ey', 'ez', 'gxy_rad'});
+tabla_def = array2table([(1:nno)', ex, ey, ez, gxy], ...
+    'VariableNames', {'nodo', 'ex', 'ey', 'ez', 'gxy_rad'});
 
-%tabla_esf = array2table([(1:nno)', sx, sy, txy, s1, s2, ang, tmax, sv], ...
-%    'VariableNames', {'nodo', ['sx_' U_ESFUER], 'sy', 'txy', 's1', 's2', 'ang_rad', 'tmax', 'sv'});
+tabla_esf = array2table([(1:nno)', sx, sy, txy, s1, s2, ang, tmax, sv], ...
+    'VariableNames', {'nodo', ['sx_' U_ESFUER], 'sy', 'txy', 's1', 's2', 'ang_rad', 'tmax', 'sv'});
 
-%nombre_archivo_results = ['resultados_' nombre_archivo{2} '.xlsx'];
-%writetable(tabla_aq,  nombre_archivo_results, 'Sheet', 'aq')
-%writetable(tabla_def, nombre_archivo_results, 'Sheet', 'deformaciones')
-%writetable(tabla_esf, nombre_archivo_results, 'Sheet', 'esfuerzos')
+nombre_archivo_results = ['resultados_' nombre_archivo{2} '.xlsx'];
+writetable(tabla_aq,  nombre_archivo_results, 'Sheet', 'aq')
+writetable(tabla_def, nombre_archivo_results, 'Sheet', 'deformaciones')
+writetable(tabla_esf, nombre_archivo_results, 'Sheet', 'esfuerzos')
 
-%fprintf('Calculo finalizado. Resultados en "%s".\n', nombre_archivo_results);
-%{
+fprintf('Calculo finalizado. Resultados en "%s".\n', nombre_archivo_results);
+
 %% se grafican las deformaciones
 figure
 subplot(1,4,1); plot_def_esf(xnod, LaG, ex,  '\epsilon_x')
@@ -414,7 +403,7 @@ subplot(1,3,3); plot_def_esf(xnod, LaG, tmax, ['\tau_{max} [' U_ESFUER ']'],    
 %% se grafican los esfuerzos de von Mises
 figure
 plot_def_esf(xnod, LaG, sv, ['Esfuerzos de von Mises [' U_ESFUER ']']);
-%}
+
 %% se exportan los resultados a GiD/Paraview
 % Pasando los esfuerzos ya promediados:
 %export_to_GiD('c5_ejemplo_a',xnod,LaG,a,q,[sx sy sz txy txz tyz]);
@@ -424,7 +413,7 @@ plot_def_esf(xnod, LaG, sv, ['Esfuerzos de von Mises [' U_ESFUER ']']);
 
 %%
 return; % bye, bye!
-%{
+
 %% Lee del archivo "nombre_archivo" de EXCEL la hoja "hoja"
 function H = leer_excel(archivo_xlsx, hoja)
 
@@ -486,7 +475,7 @@ function txt = mostrar_info_nodo(~,info)
         numEF  = info.Target.UserData.numEF;
         xnod_e = info.Target.Vertices;
     
-        % se busca el punto mÃ¡s cercano
+        % se busca el punto más cercano
         [~, idx_e] = min(hypot(xnod_e(:,1) - x, xnod_e(:,2) - y));
         numNOD  = info.Target.UserData.LaG_e(idx_e);
         val_esf = info.Target.CData(idx_e);
@@ -499,7 +488,7 @@ function txt = mostrar_info_nodo(~,info)
         txt = 'Haga zoom y evite seleccionar el quiver()';
     end
 end
-%}
+
 %% Extrapola/alisa esfuerzos y deformaciones de puntos de Gauss a los nodos
 function [esf, error_esf] = extrapolar_esf_def(xnod, LaG, esfuerzo, tipo_esf)
     nno = size(xnod, 1);
@@ -510,17 +499,16 @@ function [esf, error_esf] = extrapolar_esf_def(xnod, LaG, esfuerzo, tipo_esf)
     esf.max      =  -inf(nno,1);
     esf.min      =   inf(nno,1);
 
-    % matriz de extrapolaciÃ³n
-    A = [[ 0.12634073, -0.63855959, -0.63855959,  1.87365927,  0.13855959,  0.13855959];
-         [-0.63855959, -0.63855959,  0.12634073,  0.13855959,  0.13855959,  1.87365927];
-         [-0.63855959,  0.12634073, -0.63855959,  0.13855959,  1.87365927,  0.13855959];
-         [-0.20780502,  1.13839679, -0.4627718 ,  0.46755195,  0.17544269, -0.11081461];
-         [-0.4627718 ,  1.13839679, -0.20780502, -0.11081461,  0.17544269,  0.46755195];
-         [ 1.13839679, -0.4627718 , -0.20780502,  0.17544269, -0.11081461,  0.46755195];
-         [ 1.13839679, -0.20780502, -0.4627718 ,  0.17544269,  0.46755195, -0.11081461];
-         [-0.4627718 , -0.20780502,  1.13839679, -0.11081461,  0.46755195,  0.17544269];
-         [-0.20780502, -0.4627718 ,  1.13839679,  0.46755195, -0.11081461,  0.17544269];
-         [ 0.42570639,  0.42570639,  0.42570639, -0.09237306, -0.09237306, -0.09237306]];
+    % matriz de extrapolación
+    A = [ ... 
+      3^(1/2)/2 + 1,            -1/2,            -1/2,   1 - 3^(1/2)/2
+    3^(1/2)/4 + 1/4, 1/4 - 3^(1/2)/4, 3^(1/2)/4 + 1/4, 1/4 - 3^(1/2)/4
+               -1/2,   1 - 3^(1/2)/2,   3^(1/2)/2 + 1,            -1/2
+    1/4 - 3^(1/2)/4, 1/4 - 3^(1/2)/4, 3^(1/2)/4 + 1/4, 3^(1/2)/4 + 1/4
+      1 - 3^(1/2)/2,            -1/2,            -1/2,   3^(1/2)/2 + 1
+    1/4 - 3^(1/2)/4, 3^(1/2)/4 + 1/4, 1/4 - 3^(1/2)/4, 3^(1/2)/4 + 1/4
+               -1/2,   3^(1/2)/2 + 1,   1 - 3^(1/2)/2,            -1/2
+    3^(1/2)/4 + 1/4, 3^(1/2)/4 + 1/4, 1/4 - 3^(1/2)/4, 1/4 - 3^(1/2)/4 ];
 
     switch tipo_esf
         case {'sx',  'ex'},  num_esf = 1;
@@ -529,11 +517,14 @@ function [esf, error_esf] = extrapolar_esf_def(xnod, LaG, esfuerzo, tipo_esf)
         otherwise,           error('Opcion no soportada');
     end
     
-    % se hace la extrapolaciÃ³n de los esfuerzos en cada EF a partir de las 
+    % se hace la extrapolación de los esfuerzos en cada EF a partir de las 
     % lecturas en los puntos de Gauss
     for e = 1:nef
-        esfa=[esfuerzo{e,:,1}];
-        esf_EF_e = A * esfa(num_esf,:)';    
+        esf_EF_e = A * [ esfuerzo{e,1,1}(num_esf)
+                         esfuerzo{e,1,2}(num_esf)
+                         esfuerzo{e,2,1}(num_esf)
+                         esfuerzo{e,2,2}(num_esf) ];        
+        
         esf.sum(LaG(e,:),:) = esf.sum(LaG(e,:),:)    + esf_EF_e;
         esf.max(LaG(e,:),:) = max(esf.max(LaG(e,:),:), esf_EF_e);
         esf.min(LaG(e,:),:) = min(esf.max(LaG(e,:),:), esf_EF_e);     
@@ -550,4 +541,28 @@ function [esf, error_esf] = extrapolar_esf_def(xnod, LaG, esfuerzo, tipo_esf)
     error_esf = log10(abs(error_esf));
     error_esf(error_esf < log10(0.1)) = -3;
     esf       = esf.prom;                      % esfuerzo promedio
+end
+
+function graficar_EF89(xnod, color)
+    X = 1;
+    Y = 2;
+
+    xi     = linspace(-1, 1, 10);
+    xi_nod = [-1 0 1];
+
+    nodos = [ 1 2 3    % lado 1
+              3 4 5    % lado 2
+              5 6 7    % lado 3
+              7 8 1 ]; % lado 4
+
+    plot(xnod(:,X), xnod(:,Y), 'o', 'Color', color);
+
+    for idx = nodos'  % fila a fila
+        % un polinomio de orden 2 pasa por tres puntos
+        pol_xt = polyfit(xi_nod, xnod(idx,X), 2);
+        pol_yt = polyfit(xi_nod, xnod(idx,Y), 2);
+        x = polyval(pol_xt, xi);
+        y = polyval(pol_yt, xi);        
+        plot(x, y, 'Color', color);
+    end
 end
