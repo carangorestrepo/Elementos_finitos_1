@@ -362,7 +362,11 @@ esf = cell(nef,n_gl,3);
 
 for e = 1:nef
    % desplazamientos de los gdl del elemento e
-   ae = a(idx{e});
+      % desplazamientos de los gdl del elemento e
+   ar = a(idx{e});
+   ae = [ar;
+         inv_Kee{e}  * Ker{e} * ar];
+
    for pp = 1:n_gl
          def{e,pp} = B{e,pp}*ae;           % calculo las deformaciones
          esf{e,pp} = De{mat(e)}*def{e,pp}; % calculo los esfuerzos
