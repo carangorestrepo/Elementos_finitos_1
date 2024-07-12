@@ -33,16 +33,25 @@ if ite==iteraciones
     %V=double(subs(V,x,xs));
     %M=double(subs(M,x,xs));
     figure(2)
-    xyv=[0,da;xs',v';L,db];
-    xyu=[0,daA;xs',u';L,dbA];
+    xyv=[0,da;
+         xs',v';
+         L,db]; %deformaciion vertical
+     
+    xyu=[0,daA;
+         xs',u';
+         L,dbA];%deformaciion horizontal
+    
     xs=[0,xs,L];
+    
     % rotacion de la solucion antes de dibujar
     T   = [ cos(ang)  -sin(ang)    % matriz de rotacion
             sin(ang)   cos(ang) ];
     %% Dibujar de deformada
-    pos = T*[ xs + esc_def*xyu(:,2)'; esc_def*xyv(:,2)'];
+    pos = T*[ xs + esc_def*xyu(:,2)';
+               esc_def*xyv(:,2)'];
     xx = pos(1,:) + x1;
     yy = pos(2,:) + y1;
+    
     plot([x1 x2], [y1 y2], 'b-', xx, yy, 'r-','LineWidth',2),hold on
 
     %% Dibujar los diagramas de fuerza axial 

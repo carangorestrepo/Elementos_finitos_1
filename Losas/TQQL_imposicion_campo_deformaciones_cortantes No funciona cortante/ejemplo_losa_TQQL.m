@@ -126,7 +126,8 @@ Bs = cell(nef,n_gl_s,n_gl_s); % matrices de deformacion generalizada de cortante
 for e = 1:nef      % ciclo sobre todos los elementos finitos
    xe = xnod(LaG(e,:),X);   
    ye = xnod(LaG(e,:),Y);    
-    
+   xe1=xe([1,4,2,5,3,6],1)';
+   ye1=ye([1,4,2,5,3,6],1)';
    %% se calculan las matrices de rigidez de flexion Kb y cortante Ks del elemento e 
    Kbe = zeros(3*nnoef);
    Kse = zeros(3*nnoef); 
@@ -137,11 +138,16 @@ for e = 1:nef      % ciclo sobre todos los elementos finitos
          eta_gl = e_gl_b(p);
          
          [Bb{e,p}, det_Je(p), Je_pq] = Bb_RM(xi_gl, eta_gl, xe, ye, dN_dxi, dN_deta);
-         Bs{e,p} = Bs_TQQL(xi_gl, eta_gl, xe, ye, Nforma, dN_dxi, dN_deta, Je_pq);
-
+         %Bs{e,p} = Bs_TQQL(xi_gl, eta_gl, xe, ye, Nforma, dN_dxi, dN_deta, Je_pq);
+         
+         [bmat_b,bmat_s,Ngp,area] = B_mat_Plate_TQQL_v1_2(xe1,ye1,xi_gl,eta_gl);
+         
+         Bs{e,p}=bmat_s(:,[1,2,3,10,11,12,4,5,6,13,14,15,7,8,9,16,17,18]);
+         Bb{e,p}=bmat_b(:,[1,2,3,10,11,12,4,5,6,13,14,15,7,8,9,16,17,18]);
+         
          % se arma la matriz de rigidez del elemento e
          Kbe = Kbe + Bb{e,p}'*Dbg*Bb{e,p}*det_Je(p)*w_gl_b(p);
-         Kse = Kse + Bs{e,p}'*Dsg*Bs{e,p}*det_Je(p)*w_gl_s(p);         
+         Kse = Kse + Bs{e,p}'*Dsg*Bs{e,p}*det_Je(p)*w_gl_b(p);         
       %end
    end
    
@@ -320,7 +326,7 @@ for e = 1:nef      % ciclo sobre todos los elementos finitos
     for p = 1:n_gl_b
         %for q = 1:n_gl_b
             xi_gl  = x_gl_b(p);
-            eta_gl = x_gl_b(p);
+            eta_gl = e_gl_b (p);
             Bb{e,p} = Bb_RM(xi_gl, eta_gl, xe, ye, dN_dxi, dN_deta);
         %end
     end
@@ -329,8 +335,8 @@ for e = 1:nef      % ciclo sobre todos los elementos finitos
     % calculo de las fuerzas cortantes
     for p = 1:n_gl_s
         %for q = 1:n_gl_s
-            xi_gl  = x_gl_s(p);
-            eta_gl = x_gl_s(p);
+            xi_gl  = x_gl_b(p);
+            eta_gl = e_gl_b (p);
             Bs{e,p} = Bs_RM(xi_gl, eta_gl, xe, ye, Nforma, dN_dxi, dN_deta);
         %end
     end

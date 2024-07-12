@@ -96,7 +96,7 @@ title('Malla de elementos finitos');
 % programa deduccion_funciones_forma/FF_serendipitos_T10.m
 
  Nforma =  @(xi, eta) [
- (eta + xi - 1)*(2*eta + 2*xi - 1)
+ 1-3*(xi+eta)+4*xi*eta+2*(xi^2+eta^2)%(eta + xi - 1)*(2*eta + 2*xi - 1)
                      xi*(2*xi - 1)
                    eta*(2*eta - 1)
             -xi*(4*eta + 4*xi - 4)

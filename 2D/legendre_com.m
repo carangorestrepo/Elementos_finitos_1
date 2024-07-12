@@ -44,12 +44,12 @@ function [ xtab, weight ] = legendre_com ( norder )
 %    real WEIGHT(NORDER), the weights of the rule.
 %    The weights are positive, symmetric, and should sum to 2.
 %
-  if ( norder < 1 )
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) 'LEGENDRE_COM - Fatal error!'
-    write ( *, '(a,i6)' ) '  Illegal value of NORDER = ', norder
-    error ( 'LEGENDRE_COM - Fatal error!' );
-  end
+ % if ( norder < 1 )
+ %   write ( *, '(a)' ) ' '
+ %   write ( *, '(a)' ) 'LEGENDRE_COM - Fatal error!'
+ %   write ( *, '(a,i6)' ) '  Illegal value of NORDER = ', norder
+ %   error ( 'LEGENDRE_COM - Fatal error!' );
+ % end
 
   e1 = norder * ( norder + 1 );
 

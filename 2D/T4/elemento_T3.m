@@ -98,10 +98,10 @@ title('Malla de elementos finitos');
 % NOTA estas funciones de forma y sus derivadas se encontraron con el
 % programa deduccion_funciones_forma/FF_serendipitos_Q4_Q8.m
 Nforma = @(xi,eta)[( 1.0 - 9.0 * xi * eta ) * ( 1.0 - xi - eta )
-           xi * ( 1.0 - 9.0 * ( 1.0 - xi - eta ) * eta )
-           eta * ( 1.0 - 9.0 * ( 1.0 - xi - eta ) * xi )
-           27.0 * ( 1.0 - xi - eta ) * xi * eta
-           ];
+                   xi * ( 1.0 - 9.0 * ( 1.0 - xi - eta ) * eta )
+                   eta * ( 1.0 - 9.0 * ( 1.0 - xi - eta ) * xi )
+                   27.0 * ( 1.0 - xi - eta ) * xi * eta
+                   ];
 Nforma3 = @(xi,eta)[( 1.0 - 9.0 * xi * eta ) * ( 1.0 - xi - eta )
            xi * ( 1.0 - 9.0 * ( 1.0 - xi - eta ) * eta )
            eta * ( 1.0 - 9.0 * ( 1.0 - xi - eta ) * xi )
@@ -109,8 +109,8 @@ Nforma3 = @(xi,eta)[( 1.0 - 9.0 * xi * eta ) * ( 1.0 - xi - eta )
                 
 % derivadas de las funciones de forma con respecto a xi
 dN_dxi = @(xi,eta) [ ...
-     9*eta*(eta + xi - 1) + 9*eta*xi - 1
-   9*eta*xi + eta*(9*eta + 9*xi - 9) + 1
+                   9*eta*(eta + xi - 1) + 9*eta*xi - 1
+        9*eta*xi + eta*(9*eta + 9*xi - 9) + 1
                  eta*(9*eta + 18*xi - 9)
  - 27*eta*xi - eta*(27*eta + 27*xi - 27)
                     ];

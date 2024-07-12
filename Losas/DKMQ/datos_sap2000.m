@@ -6,6 +6,7 @@ X = 1; Y = 2; Z = 3; % un par de constantes que ayudaran en la
 ww= 1; tx= 2; ty= 3; % lectura del codigo
 
 datos='semicircular-1';
+
 [NUM1,TXT1,RAW1]=xlsread(datos,'Joint Coordinates');%%
 [NUM2,TXT2,RAW2]=xlsread(datos,'Connectivity - Area');%%
 

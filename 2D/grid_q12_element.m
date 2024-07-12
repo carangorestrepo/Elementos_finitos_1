@@ -98,6 +98,7 @@ function element_node = grid_q12_element ( nelemx, nelemy )
       element_node(12,element) = base + 5 * nelemx + 3 * i + 3;
 
     end
+
   end
 
   return

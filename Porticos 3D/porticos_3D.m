@@ -1,4 +1,4 @@
-function [qe_loc,kmodal,mmodal,gama,GLKM,xye,elementos,nudos,GLe,we,Le,esc_def,esc_faxial,esc_V,esc_M3,esc_M2,matT,T,Ke]= porticos_3D(xyc,ninf,sec,tiposec,elecargas,carga,dcarga,carga_nudo,nudos_carga,nudosapoyos,tipoapoyo,EA,Acy,Acz,EIz,EIy,GJ)
+function [qe_loc,kmodal,mmodal,gama,GLKM,xye,elementos,nudos,GLe,we,Le,esc_def,esc_faxial,esc_V,esc_M3,esc_M2,matT,T,Ke]= porticos_3D(xyc,ninf,elecargas,carga,dcarga,carga_nudo,nudos_carga,nudosapoyos,tipoapoyo,EA,Acy,Acz,EIz,EIy,GJ)
 %%escalas de Dibujo la estructura y su deformada
 esc_def    = 500;          % escalamiento de la deformada
 esc_faxial = 0.01;          % escalamiento del diagrama de axiales
@@ -23,7 +23,7 @@ xye = zeros(elementos(1,1),6);
 %L = zeros(elementos(1,1),1);
 GLe = zeros(elementos(1,1),12);
 GLep = zeros(size_nudos_carga(1,1),3);
-bh = zeros(elementos(1,1),2);
+%bh = zeros(elementos(1,1),2);
 %I = zeros(elementos(1,1),1);
 %A = zeros(elementos(1,1),1);
 %c = zeros(elementos(1,1),1);
@@ -80,7 +80,7 @@ for e=1:elementos(1,1)
     %L = sqrt((xye(e,4)-xye(e,1))^2+(xye(e,5)-xye(e,2))^2+(xye(e,6)-xye(e,3))^2);
     ang(e) = atan2(xye(e,4)-xye(e,2), xye(e,3)-xye(e,1));
     Le(e) = sqrt((xye(e,4)-xye(e,1))^2+(xye(e,5)-xye(e,2))^2+(xye(e,6)-xye(e,3))^2);
-    bh(e,:) = [sec(tiposec(e),1),sec(tiposec(e),2)];% inercias_y  I(m^4)
+    %bh(e,:) = [sec(tiposec(e),1),sec(tiposec(e),2)];% inercias_y  I(m^4)
     %I = sec(tiposec(e),1)*sec(tiposec(e),2)^3/12;% inercias_y  I(m^4)
     %Ixz=bh(e,1).*bh(e,2).^3/12;
     %Iyz=bh(e,2).*bh(e,1).^3/12;   
@@ -290,7 +290,7 @@ for e=1:elementos(1,1)
     y1 = xye(e,2);  y2 = xye(e,5);
     z1 = xye(e,3);  z2 = xye(e,6);
     matT = T{e}(1:3,1:3)';
-%    deformada(-we(e,:),T{e}*Def(GLe(e,:)),Le(e),esc_def,esc_faxial,esc_V,esc_M3,esc_M2,x1,y1,x2,y2,z1,z2,qe_loc{e},matT,EA(e),GJ(e),Acy(e),Acz(e),EIz(e),EIy(e));
+    deformada(-we(e,:),T{e}*Def(GLe(e,:)),Le(e),esc_def,esc_faxial,esc_V,esc_M3,esc_M2,x1,y1,x2,y2,z1,z2,qe_loc{e},matT,EA(e),GJ(e),Acy(e),Acz(e),EIz(e),EIy(e));
 end
 a=1
 

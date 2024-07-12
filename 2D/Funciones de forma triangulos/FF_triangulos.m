@@ -1,5 +1,13 @@
 clc
 clear
+syms  xi eta
+h1=1-xi-eta;
+h2=xi;
+h3=eta;
+f4=27*xi*eta*(1-xi-eta);
+f1=h1-1/3*f4;
+f2=h2-1/3*f4;
+f3=h3-1/3*f4;
 %phi=a0+a1*x+a2*y+a3*x*y+a4*x2+a5*y5;
 nno = 6; %  escoja entre {4, 8}.
 
@@ -16,26 +24,38 @@ coord = round(coord*100)/100;
 %% Se calculan las funciones de forma bidimensionales
 xxi  = coord(:, X); 
 eeta = coord(:, Y);
-A = [ ones(nno,1) xxi eeta xxi.^2 xxi.*eeta eeta.^2 ];
+%A = [ ones(nno,1) xxi eeta xxi.^2 xxi.*eeta eeta.^2 ];
 N = cell(nno,1);
 Nnuc=cell(1,1);
 syms xi eta
-for i = 1:nno
-   % se arma el sistema de ecuaciones
-   b = zeros(nno,1);  
-   b(i) = 1;
-   coef_alpha = A\b;
-   N{i} = simplify([ 1 xi eta xi^2 xi*eta eta^2]*coef_alpha);
-end
+%for i = 1:nno
+%   % se arma el sistema de ecuaciones
+%   b = zeros(nno,1);  
+%   b(i) = 1;
+%   coef_alpha = A\b;
+%   N{i} = simplify([ 1 xi eta xi^2 xi*eta eta^2]*coef_alpha);
+%end
+
+%N{1}=( 1.0 - 9.0 * xi * eta ) * ( 1.0 - xi - eta );
+%N{2}=xi * ( 1.0 - 9.0 * ( 1.0 - xi - eta ) * eta );
+%N{3}=eta * ( 1.0 - 9.0 * ( 1.0 - xi - eta ) * xi );
+%N{4}=27.0 * ( 1.0 - xi - eta ) * xi * eta;
+
+N{1}=(eta + xi - 1)*(2*eta + 2*xi - 1);
+N{2}=           -xi*(4*eta + 4*xi - 4);
+N{3}=                     xi*(2*xi - 1);
+N{4}=                          4*eta*xi;
+N{5}=                   eta*(2*eta - 1);
+N{6}=           -eta*(4*eta + 4*xi - 4);
 
 % FUNCIONES DE FORMA NUDOS INCOPATIBLES
-Nnuc=cell(1,1);
-bnuc=zeros(nno,1); 
+%Nnuc=cell(1,1);
+%bnuc=zeros(nno,1); 
 %bnuc([5,4],1) = [1;1];
 %bnuc([6,4],1) = [1;1];
-bnuc([5,6],1) = [1;1];
-coef_alpha_nuc = A\bnuc;
-Nnuc{1} = simplify([ 1 xi eta xi^2 xi*eta eta^2]*coef_alpha_nuc);
+%bnuc([5,6],1) = [1;1];
+%coef_alpha_nuc = A\bnuc;
+%Nnuc{1} = simplify([ 1 xi eta xi^2 xi*eta eta^2]*coef_alpha_nuc);
 
 %-4*eta*(eta - 1) %%4,5
 %-4*xi*(xi - 1) %% 6, 4

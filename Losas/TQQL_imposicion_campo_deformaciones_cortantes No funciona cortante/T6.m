@@ -10,8 +10,8 @@ nu=0.25;
 t=0.2;
 Lx=2;
 Ly=4;
-deltax=0.05;
-deltay=0.05;
+deltax=0.1;
+deltay=0.1;
 n=2;
 rho=0;
 

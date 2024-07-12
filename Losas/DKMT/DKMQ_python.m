@@ -82,12 +82,12 @@ function N_gamma=N_gammaa(xi, eta)
         N_gamma=[[1/2*(1-eta),        0,1/2*(1+eta),      0];
                  [          0,1/2*(1+xi),         0,      1/2*(1-xi)]];
 end
-function A_gamma=A_gammaa=A_gamma(L_ka)
+function A_gamma=A_gammaa(L5,L6,L7,L8)
 
-        L5 = L_k(5);
-        L6 = L_k(6);
-        L7 = L_k(7);
-        L8 = L_k(8);
+        %L5 = L_k(5);
+        %L6 = L_k(6);
+        %L7 = L_k(7);
+        %L8 = L_k(8);
 
         %% Equation 46
         A_gamma=[[L5/2,   0,     0,     0];
@@ -97,18 +97,18 @@ function A_gamma=A_gammaa=A_gamma(L_ka)
 end
 
 
-function A_u(self)
-        L5 = L_k(5);
-        L6 = L_k(6);
-        L7 = L_k(7);
-        L8 = L_k(8);
+function Aun=A_u(L5,L6,L7,L8,C5,C6,C7,C8)
+        %L5 = L_k(5);
+        %L6 = L_k(6);
+        %L7 = L_k(7);
+        %L8 = L_k(8);
 
-        [C5, S5] = dir_cos(5)
-        C6, S6 = dir_cos(6)
-        C7, S7 = dir_cos(7)
-        C8, S8 = dir_cos(8)
+        %[C5, S5] = dir_cos(5);
+        %[C6, S6] = dir_cos(6);
+        %[C7, S7] = dir_cos(7);
+        [%C8, S8] = dir_cos(8);
 
-        A_u=[[-2/L5, C5, S5,  2/L5, C5, S5,   0,    0,  0,   0,    0,  0];
+        A_un=[[-2/L5, C5, S5,  2/L5, C5, S5,   0,    0,  0,   0,    0,  0];
              [  0,    0,  0, -2/L6, C6, S6, 2/L6,  C6, S6,   0,    0,  0];
              [  0,    0,  0,   0,    0,  0, -2/L7, C7, S7,  2/L7, C7, S7];
              [ 2/L8, C8, S8,   0,    0,  0,   0,    0,  0, -2/L8, C8, S8]];

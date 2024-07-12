@@ -22,7 +22,7 @@ y = N1*y1 + N2*y2 + N3*y3 ;
 
 disp('J = '); 
 J = [ diff(x,xi)   diff(y,xi)
-      diff(x,eta)  diff(y,eta) ]
+      diff(x,eta)  diff(y,eta) ];
 
 disp('det(J) = ');
 detJ = det(J);
@@ -94,6 +94,7 @@ gs6=subs(ec,{wj,wi,Bxj,Bxi,Byj,Byi,Lk,Ck,Sk},{w1,w3,bx1,bx3,By1,By3,L6,c6,s6});
 %An = simplify(equationsToMatrix([ dbs4; dbs5; dbs6 ], Un1));
 
 % eq 49
+
 % gsk = (wj - wi)/Lk + (ck*bxi + sk*byi)/2 + (ck*bxj + sk*byj)/2;
 %gs4   = (w2 - w1)/L4 + (c4*bx1 + s4*by1)/2 + (c4*bx2 + s4*by2)/2;
 %gs5   = (w3 - w2)/L5 + (c5*bx2 + s5*by2)/2 + (c5*bx3 + s5*by3)/2;
@@ -107,7 +108,7 @@ disp('Au = (1/2)*'); pretty(2*Au);
 disp('*** DEMO KATILI, EQUATION 18 ***')
 
 % Equation 18
-Ag = diag([ L4 L5/(2)^(1/2) -L6])
+Ag = diag([ L4 L5/(2)^(1/2) -L6]);
 
 % Equation 52
 Ng_Ag_Au = simplify(expand(Ng*Ag*Au));

@@ -54,7 +54,7 @@ syms A1 A2 A3
 syms L4 L5 L6  
 syms x21 x32 x13  y21 y32 y13
 syms xi_gl eta_gl x1 x2 x3 x4 y3 y1 y2 y3 y4 landa
-N1 = 1-xi_gl-eta_gl;%landa;
+N1 = 1-xi_gl-eta_gl;
 N2 = xi_gl;
 N3 = eta_gl;
 
@@ -86,4 +86,4 @@ syms phi4 phi5 phi6
 M8 = diag(-(2/3)*[ phi4 phi5 phi6]);
 
 Ngamma = M6*M5;
-Bsdb = Ngamma*M8
+Bsdb = Ngamma*M8;
