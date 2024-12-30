@@ -2,8 +2,8 @@ clc
 clear
 wx=20;
 wy=20;
-x=[1.5,1.5];%% separacion grilla x
-y=[1.7,1.7];%% separacion grilla y
+x=[1.5,2.2,1.7,1.5];%% separacion grilla x
+y=[1.7,1.8,1.7,2.2];%% separacion grilla y
 
 Ee=24870062;%4700*sqrt(28)*1000;
 Ge=Ee/(2*(1+0.25));% ton/m^2  modulo de elasticidad
@@ -11,7 +11,7 @@ Ge=Ee/(2*(1+0.25));% ton/m^2  modulo de elasticidad
 puntos_graficas=100;
 
 %% escalas de Dibujo la estructura y su deformada
-esc_def    = 10;          % escalamiento de la deformada
+esc_def    = 1;          % escalamiento de la deformada
 esc_faxial = 0.006;      % escalamiento del diagrama de axiales
 esc_V      = 0.01;       % escalamiento del diagrama de cortantes
 esc_M      = 0.01;      % escalamiento del diagrama de momentos

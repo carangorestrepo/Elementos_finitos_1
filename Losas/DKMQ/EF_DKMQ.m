@@ -136,6 +136,7 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
     %% Ciclo sobre los puntos de Gauss para calcular Kbe, Kse y fe
     Kbe = zeros(12);
     Kse = zeros(12);
+    He = zeros(12);
     fe  = zeros(12,1);
     det_Je = zeros(n_gl,n_gl); % almacenara los Jacobianos
     
@@ -256,12 +257,18 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
             
             %% se arma la matriz de rigidez del elemento e por cortante (eq. 47)
             Kse = Kse + Bs{e,pp,qq}'*Hs*Bs{e,pp,qq}*det_Je(pp,qq)*w_gl(pp)*w_gl(qq);
+            kWinkler=500;
+            idxHE = [ 1 2 3 4 ];
+            kb = zeros(16,1);
+            kb(reshape(3*idx-2,4,1)) = kbalastro(:);
+            He = He + NN{e,pp,qq}'*NN*Bs{e,pp,qq}*det_Je(pp,qq)*w_gl(pp)*w_gl(qq);
             
             %% vector de fuerzas nodales equivalentes        
             if (xe(1) >= xqi && xe(2) <= xqf) && ...
                (ye(2) >= yqi && ye(3) <= yqf)
                 fe = fe + N{e,pp,qq}'*[q 0 0]'*det_Je(pp,qq)*w_gl(pp)*w_gl(qq);
             end
+            
         end
     end
     
