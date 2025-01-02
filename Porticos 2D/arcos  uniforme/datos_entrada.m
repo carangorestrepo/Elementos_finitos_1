@@ -15,8 +15,8 @@ esc_M      = 0.9;      % escalamiento del diagrama de momentos
 %fesc=max(max(xyc))*0.4/16;%% escala apoyos
 
 % Parámetros de entrada
-qa = 13;% 5;        % Carga distribuida (N/m)
-qb = 10; %15;         % Carga distribuida (N/m)
+qa = 13;% 13;        % Carga distribuida (N/m)
+qb = 10; %10;         % Carga distribuida (N/m)
 bv = 25/1000;   % Ancho de la viga (m)
 hv = 50/1000;   % Altura de la viga (m)
 I = bv * hv^3 / 12; % Inercia de la viga (m^4)
@@ -29,7 +29,7 @@ EI = E * I;     % Producto de módulo de elasticidad y momento de inercia (N·m²)
 % retriccion,nudo
 %%X horizontal, Y vertical, XY horozonal y vertical, XYG horizontal vertica y giro
 tipo_apoyo=[XYG,1;
-            XYG,19];
+            XYG,45];
 
 %% cordenadas de arco
 xn=[-3 ,3.2,5.6];
@@ -43,7 +43,7 @@ yb=yn(2);
 yc=yn(3);
 
 %% divido arco en tramos                    1  2  3  4  6 
-datos=37;%% debe ser un numero impar mayor a 3, 5 ,7 ,9 11
+datos=89;%% debe ser un numero impar mayor a 3, 5 ,7 ,9 11
 xx=linspace(xa,xc,datos)';
 %% ecuacion de arco en cordenadas no traladadas
 yr =(xx*xa^2*yb - xx*xb^2*ya - xx.^2*xa*yb + xx.^2*xb*ya - xx*xa^2*yc + xx*xc^2*ya + xx.^2*xa*yc - xx.^2*xc*ya + xx*xb^2*yc - xx*xc^2*yb - xx.^2*xb*yc + xx.^2*xc*yb - xa*xb^2*yc + xa*xc^2*yb - xb*xc^2*ya + xa^2*xb*yc - xa^2*xc*yb + xb^2*xc*ya)/((xa - xb)*(xa - xc)*(xb - xc));
@@ -74,9 +74,12 @@ nudos=elementos+1;
 ngdl=nudos*3;
 %% separo memoria
 Kloce = cell(elementos,1);
+T = cell(elementos,1);
 ang = zeros(elementos,1); 
+ang2 = zeros(elementos,2); 
 Fe = cell(elementos,1);
 GLe = zeros(elementos,6);
+xxe = zeros(elementos,4);
 q=zeros(elementos,2);
 K = zeros(nudos*3);
 M = zeros(nudos*3);
@@ -96,6 +99,17 @@ for e=1:elementos
     q(e,:)=[qaa,qbb];
     Le(e)=hypot(xe(e,3)-xe(e,1),ye(e,3)-ye(e,1));
     ang(e) = atan2(ye(e,3)-ye(e,1), xe(e,3)-xe(e,1));
+    ang2(e,:)=atan(ang1(e,[1,3]));
+    
+    ss = (xe(e,3)-xe(e,1))/Le(e);   
+    cc = (ye(e,3)-ye(e,1))/Le(e);
+    % matriz de transformacion de coordenadas para la barra e   
+    T{e} = [ cc  ss  0  0  0  0
+            -ss  cc  0  0  0  0
+             0  0  1  0  0  0
+             0  0  0  cc  ss  0
+             0  0  0 -ss  cc  0
+             0  0  0  0  0  1];
     Fe{e}=-fuerzas_nodales_equivalentes(qaa,qbb,xaa,xbb,xcc,yaa,ybb,ycc,EI);
     Fee=Fe{e};
     %% matriz de rigidez local en coordenadas globales
@@ -161,6 +175,9 @@ Mdd=M(d,d);
 % armo los vectores de desplazamientos (a) y fuerzas (q)
 a  = zeros(ngdl,1);   a(c) = ac;  a(d) = ad; % desplazamientos
 q  = zeros(ngdl,1);   q(c) = qd; % fuerzas nodales de equilibrio
+xxeA = zeros(elementos,4);
+xxeV = zeros(elementos,4);
+xxeM = zeros(elementos,4);
 
 for e=1:elementos(1,1)   % para cada barra
     qe_glob{e} = (Kloce{e}*a(GLe(e,:)) - Fe{e});
@@ -170,14 +187,41 @@ for e=1:elementos(1,1)   % para cada barra
     M=-[sol(3),-sol(6)];
     Vv=[sol(2),-sol(5)];
     Aa=[sol(1),-sol(4)];
-    
     s=sin(atan(ang1(e,[1,3])));
     c=cos(atan(ang1(e,[1,3])));
     A=-Aa.*c-Vv.*s;
     V=-(-Vv.*c+Aa.*s);
-    
-    deformada(a(GLe(e,:)),ang(e),esc_def,esc_faxial,esc_V,esc_M,x1,y1,x2,y2,M,V,A,Le(e))
+    %T{e}*a(GLe(e,:))
+    [xx,yy,ssA,aaA,ssV,vvV,ssM,mm]=deformada(T{e}*a(GLe(e,:)),ang(e),ang2(e,:),esc_def,esc_faxial,esc_V,esc_M,x1,y1,x2,y2,M,V,A,Le(e),e,elementos(1,1));
+    xxe(e,:)=[xx,yy];
+    xxeA(e,:)=[ssA,aaA];
+    xxeV(e,:)=[ssV,vvV];
+    xxeM(e,:)=[ssM,mm];
     %qe_loc{e}=T{e}*qe_glob{e};
 end
+xA=[xxeA(:,1);xxeA(end,2)];
+Aa=[xxeA(:,3);xxeA(end,4)];
 
-a=1
+xVv=[xxeV(:,1);xxeV(end,2)];
+Vv=[xxeV(:,3);xxeV(end,4)];
+
+xMm=[xxeM(:,1);xxeM(end,2)];
+Mm=[xxeM(:,3);xxeM(end,4)];
+
+
+figure(2)
+plot([xxe(:,1);xxe(end,2)],[xxe(:,3);xxe(end,4)], 'r-','LineWidth',2)
+%figure(5)
+%plot([x1 x2], [y1 y2], 'b-', [x1 ssM x2], [y1 Mm y2], 'r-','LineWidth',2),hold on;
+%text(xMm(1),   Mm(1),   num2str(Mm(1,1)));
+%text(xMm(end), Mm(end), num2str(Mm(end,1)));
+%[minM,idminM] = min(Mm); 
+%text(xMm(idminM), Mm(idminM), num2str(minM));
+%[maxM,idmaxM] = max(Mm); 
+%text(xMm(idmaxM), Mm(idmaxM), num2str(maxM));
+
+
+figure(2); hold on; title('Deformada exagerada');    xlabel('x, m'); ylabel('y, m'); axis equal
+figure(3); hold on; title('Fuerza axial [kN]');      xlabel('x, m'); ylabel('y, m'); axis equal
+figure(4); hold on; title('Fuerza cortante [kN]');   xlabel('x, m'); ylabel('y, m'); axis equal
+figure(5); hold on; title('Momento flector [kN-m]'); xlabel('x, m'); ylabel('y, m'); axis equal
