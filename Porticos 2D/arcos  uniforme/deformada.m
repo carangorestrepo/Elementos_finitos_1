@@ -51,10 +51,20 @@ pos = T*[ s; esc_faxial*axial ]; % escalamiento del diagrama
 ssA = pos(1,:) + x1;
 aaA = pos(2,:) + y1;
 
-plot([x1 x2], [y1 y2], 'b-', [x1 ssA x2], [y1 aaA y2], 'r-','LineWidth',2),hold on;
-text(ssA(1),   aaA(1),   num2str(axial(1,1)),'Rotation',ang*180/pi+90);
+plot([x1 x2], [y1 y2], 'b-','LineWidth',3),hold on;
+plot( [x1 ssA x2], [y1 aaA y2], 'r-','LineWidth',2),hold on;
+if axial(1)<=0
+    text(ssA(1),   aaA(1),"  " +num2str(axial(1,1))+"  ",'Rotation',ang*180/pi+90,'Horizontalalignment','right');
+else
+    text(ssA(1),   aaV(1),"  " +num2str(axial(1,1))+"  " ,'Rotation',ang*180/pi+90);
+end
+    
 if e==elementos
-    text(ssA(end), aaA(end), num2str(axial(1,end)),'Rotation',ang*180/pi+90);
+    if axial(1)<=0
+        text(ssA(end), aaA(end),"  " +num2str(axial(1,end))+"  ",'Rotation',ang*180/pi+90,'Horizontalalignment','right');
+    else
+        text(ssA(end), aaA(end),"  " +num2str(axial(1,end))+"  ",'Rotation',ang*180/pi+90); 
+    end
 end
 
 %% Dibujar los diagramas de fuerza cortante
@@ -63,22 +73,44 @@ pos = T*[ s; esc_V*V ]; % escalamiento del diagrama
 ssV = pos(1,:) + x1;
 vvV = pos(2,:) + y1;
 figure(4)
-plot([x1 x2], [y1 y2], 'b-', [x1 ssV x2], [y1 vvV y2], 'r-','LineWidth',2),hold on;
-text(ssV(1),   vvV(1),   num2str(V(1,1)),'Rotation',ang*180/pi+90);
-if e==elementos
-    text(ssV(end), vvV(end), num2str(V(1,end)),'Rotation',ang*180/pi+90);
+plot([x1 x2], [y1 y2], 'b-','LineWidth',3),hold on;
+plot([x1 ssV x2], [y1 vvV y2], 'r-','LineWidth',2),hold on;
+if V(1,1)>=0
+    text(ssV(1),   vvV(1),"  " +num2str(V(1,1))+"  " ,'Rotation',ang*180/pi+90);
+else
+    text(ssV(1),   vvV(1),"  " +num2str(V(1,1))+"  " ,'Rotation',ang*180/pi+90,'Horizontalalignment','right');
+end
+if e==elementos 
+    if V(1,end)>=0
+        text(ssV(end), vvV(end), "  " + num2str(V(1,end))+"  "  ,'Rotation',ang*180/pi+90);
+    else
+        text(ssV(end), vvV(end), "  "  + num2str(V(1,end))+"  " ,'Rotation',ang*180/pi+90,'Horizontalalignment','right');
+    end
 end
 %% Dibujar los diagramas de momento flector
-
 
 pos = T*[ s; -esc_M*M ]; % escalamiento del diagrama
 ssM = pos(1,:) + x1;
 mm = pos(2,:) + y1;
 figure(5)
-plot([x1 x2], [y1 y2], 'b-', [x1 ssM x2], [y1 mm y2], 'r-','LineWidth',2),hold on;
-text(ssM(1),   mm(1),   num2str(M(1,1)),'Rotation',ang*180/pi+90);
+plot([x1 x2], [y1 y2], 'b-','LineWidth',3),hold on;
+plot([x1 ssM x2], [y1 mm y2], 'r-','LineWidth',2),hold on;
+
+%text(ssM(1),   mm(1),   num2str(M(1,1)),'Rotation',ang*180/pi+90);
+
+if M(1,1)<=0
+    text(ssM(1),   mm(1),"  " +num2str(M(1,1))+"  " ,'Rotation',ang*180/pi+90);
+else
+    text(ssM(1),  mm(1),"  " +num2str(M(1,1))+"  " ,'Rotation',ang*180/pi+90,'Horizontalalignment','right');
+end
+
 if e==elementos
-    text(ssM(end), mm(end), num2str(M(1,end)),'Rotation',ang*180/pi+90);
+    if M(1,1)<=0
+        text(ssM(end), mm(end),"  " + num2str(M(1,end)) +"  ",'Rotation',ang*180/pi+90);
+    else
+        text(ssM(end), mm(end),"  " + num2str(M(1,end)) +"  ",'Rotation',ang*180/pi+90,'Horizontalalignment','right');
+    end
+    
 end
 %[minM,idminM] = min(M); text(ssM(idminM), mm(idminM), num2str(minM));
 %[maxM,idmaxM] = max(M); 

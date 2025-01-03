@@ -189,7 +189,7 @@ for e=1:elementos(1,1)   % para cada barra
     Aa=[sol(1),-sol(4)];
     s=sin(atan(ang1(e,[1,3])));
     c=cos(atan(ang1(e,[1,3])));
-    A=-Aa.*c-Vv.*s;
+    A=(-Aa.*c-Vv.*s);
     V=-(-Vv.*c+Aa.*s);
     %T{e}*a(GLe(e,:))
     [xx,yy,ssA,aaA,ssV,vvV,ssM,mm]=deformada(T{e}*a(GLe(e,:)),ang(e),ang2(e,:),esc_def,esc_faxial,esc_V,esc_M,x1,y1,x2,y2,M,V,A,Le(e),e,elementos(1,1));
