@@ -1,4 +1,4 @@
-function [qe_glob,ad,Kdd,Mdd,GLe,d,elementos,nudos,xye,MMexdd,T,Ke,ang,AEe,EIe,Ace,Le,P,iteraciones,ite,puntos_graficas,gama,Ce]=porticos(EG,mat_elem,xyc,ninf,sec,sec_ele,elemento_carga,nudo_carga,tipo_apoyo,tipo_conti,nudo_resorte,kw,lalb,PD,esc_def,esc_faxial,esc_V,esc_M,fesct,fesc)
+function [qe_glob,ad,Kdd,Mdd,GLe,d,elementos,nudos,xye,MMexdd,T,Ke,ang,AEe,EIe,Ace,Le,P,iteraciones,ite,puntos_graficas,gama]=porticos(EG,mat_elem,xyc,ninf,sec,sec_ele,elemento_carga,nudo_carga,tipo_apoyo,tipo_conti,nudo_resorte,kw,lalb,PD,esc_def,esc_faxial,esc_V,esc_M,fesct,fesc)
 
 % se definen algunas constantes que hacen el codigo mas legible
 X = 1;
@@ -181,7 +181,7 @@ for ite=1:iteraciones
                             0,              0,              0,              0,              0,           0];
         wa=wey(e,1);
         wb=wey(e,2);
-         %% calculo de  la matriz de masa incluye grados de livertad rotacionales
+         %% calculo de  la matriz de masa inc
         Myex=[[ (L*(3*wa + wb))/(12*g),                                                                                                                                     0,                                                                                                                                     0,   (L*(wa + wb))/(12*g),                                                                                                                                      0,                                                                                                                                      0];
               [                      0,      (L*(1260*EI^2*wa + 420*EI^2*wb + 10*Ac^2*L^4*wa + 3*Ac^2*L^4*wb + 224*Ac*EI*L^2*wa + 70*Ac*EI*L^2*wb))/(35*g*(Ac*L^2 + 12*EI)^2), (L^2*(1512*EI^2*wa + 1008*EI^2*wb + 15*Ac^2*L^4*wa + 7*Ac^2*L^4*wb + 300*Ac*EI*L^2*wa + 162*Ac*EI*L^2*wb))/(420*g*(Ac*L^2 + 12*EI)^2),                      0,                                                      (3*L*(wa + wb)*(3*Ac^2*L^4 + 84*Ac*EI*L^2 + 560*EI^2))/(140*g*(Ac*L^2 + 12*EI)^2),  -(L^2*(1512*EI^2*wa + 1008*EI^2*wb + 7*Ac^2*L^4*wa + 6*Ac^2*L^4*wb + 216*Ac*EI*L^2*wa + 162*Ac*EI*L^2*wb))/(420*g*(Ac*L^2 + 12*EI)^2)];
               [                      0, (L^2*(1512*EI^2*wa + 1008*EI^2*wb + 15*Ac^2*L^4*wa + 7*Ac^2*L^4*wb + 300*Ac*EI*L^2*wa + 162*Ac*EI*L^2*wb))/(420*g*(Ac*L^2 + 12*EI)^2),      (L^3*(504*EI^2*wa + 504*EI^2*wb + 5*Ac^2*L^4*wa + 3*Ac^2*L^4*wb + 96*Ac*EI*L^2*wa + 72*Ac*EI*L^2*wb))/(840*g*(Ac*L^2 + 12*EI)^2),                      0,   (L^2*(1008*EI^2*wa + 1512*EI^2*wb + 6*Ac^2*L^4*wa + 7*Ac^2*L^4*wb + 162*Ac*EI*L^2*wa + 216*Ac*EI*L^2*wb))/(420*g*(Ac*L^2 + 12*EI)^2),                                                       -(L^3*(wa + wb)*(Ac^2*L^4 + 28*Ac*EI*L^2 + 168*EI^2))/(280*g*(Ac*L^2 + 12*EI)^2)];

@@ -89,8 +89,6 @@ if ite==iteraciones
     text(ss(1),   vv(1),   num2str(V(1,1)));
     text(ss(end), vv(end), num2str(V(1,end)));
     %% Dibujar los diagramas de momento flector
-
-
     pos = T*[ s; -esc_M*M ]; % escalamiento del diagrama
     ss = pos(1,:) + x1;
     mm = pos(2,:) + y1;

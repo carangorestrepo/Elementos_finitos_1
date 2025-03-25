@@ -127,15 +127,15 @@ fuer=zeros(sizexy*GL,1);
 Sx(d,:)=eta1;% deformnaciones sismica en X
 Sy(d,:)=eta2;% deformnaciones sismica en Y
 
-
 for e=1:elementos(1,1)   % para cada barra
     qe_glob{e} = T{e}*(Ke{e}*Sx(GLe(e,:),:));
     qe_loc{e}=T{e}*qe_glob{e};
     x1 = xye(e,1);  x2 = xye(e,3);
     y1 = xye(e,2);  y2 = xye(e,4);
     Ce{e}=[0;0;0;0;0;0];
-    deformada_combinacion_modal(AEe(e),EIe(e),Ace(e),Ce(e,:),T{e}*Sx(GLe(e,:),:),Le(e),ang(e),kw(e),P(e),lalb(e,:),esc_def,esc_faxial,esc_V,esc_M,x1,y1,x2,y2,tipo_conti(e,:),iteraciones,ite,puntos_graficas,n)
+    deformada_combinacion_modal(AEe(e),EIe(e),Ace(e),Ce(e,:),T{e}*def1(GLe(e,:),:),Le(e),ang(e),kw(e),P(e),lalb(e,:),esc_def,esc_faxial,esc_V,esc_M,x1,y1,x2,y2,tipo_conti(e,:),iteraciones,ite,puntos_graficas,n)
 end
+
 
 figure(2); hold on; title('Deformada exagerada');    xlabel('x, m'); ylabel('y, m'); axis equal
 figure(3); hold on; title('Fuerza axial [kN]');      xlabel('x, m'); ylabel('y, m'); axis equal

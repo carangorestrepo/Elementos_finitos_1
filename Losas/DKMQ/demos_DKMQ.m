@@ -48,7 +48,7 @@ Adb = diag((2/3)*[ L5*(1+phi5) L6*(1+phi6) L7*(1+phi7) L8*(1+phi8)]);
 Aw =simplify(Adb*An);
 
 %%
-clear
+%clear
 syms gxz1 gyz1 gxz2 gyz2 gxz3 gyz3 gsz4 gsz5 gsz7 gsz6 gxz4 gyz4 gsz8
 syms C4 C5 C6 C7 C8
 syms S4 S5 S6 S7 S8
@@ -89,3 +89,6 @@ M8 = diag(-(2/3)*[ phi5 phi6 phi7 phi8]);
 
 Ngamma = M6*M5;
 Bsdb = Ngamma*M8;
+
+
+Bs=Bsdb*An;
