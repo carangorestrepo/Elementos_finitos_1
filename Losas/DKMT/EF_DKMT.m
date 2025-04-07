@@ -103,9 +103,11 @@ Hb = Db * [ 1  nu 0           % matriz constitutiva de flexion generalizada
 G  = E/(2*(1+nu));     % modulo de cortante
 Hs = (5/6)*G*h*eye(2); % matriz constitutiva de cortante generalizada (Dse)
 
+T = rho * diag([h, 0, 0]);
 %% ensamblo la matriz de rigidez global y el vector de fuerzas nodales
 %  equivalentes global
 K   = sparse(ngdl,ngdl);    % matriz de rigidez global como RALA (sparse)
+M   = sparse(ngdl,ngdl);    % matriz de masa global como RALA (sparse)
 f   = zeros(ngdl,1);        % vector de fuerzas nodales equivalentes global
 N   = cell(nef, n_gl, n_gl);
 Bb  = cell(nef, n_gl, n_gl);
@@ -134,6 +136,7 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
     
     %% Ciclo sobre los puntos de Gauss para calcular Kbe, Kse y fe
     Kbe = zeros(9);
+    Me = zeros(9);
     Kse = zeros(9);
     fe  = zeros(9,1);
     det_Je = zeros(n_gl,1); % almacenara los Jacobianos
@@ -244,12 +247,14 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
             
             %% se arma la matriz de rigidez del elemento e por cortante (eq. 47)
             Kse = Kse + Bs{e,pp}'*Hs*Bs{e,pp}*det_Je(pp)*w_gl(pp);
+            %% se arma la matriz de masa del elemento e  (eq. 47)
             
+            Me = Me + N{e,pp}'*T*N{e,pp}*det_Je(pp)*w_gl(pp);
             %% vector de fuerzas nodales equivalentes        
-            if (xe(1) >= xqi && xe(2) <= xqf) && ...
-               (ye(2) >= yqi && ye(3) <= yqf)
+            %if (xe(1) >= xqi && xe(2) <= xqf) && ...
+            %   (ye(2) >= yqi && ye(3) <= yqf)
                 fe = fe + N{e,pp}'*[q 0 0]'*det_Je(pp)*w_gl(pp);
-            end
+            %end
         %end
     end
     
@@ -261,6 +266,7 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
     %% ensamblaje matricial
     idx{e} = [ gdl(LaG(e,1),:) gdl(LaG(e,2),:) gdl(LaG(e,3),:)];    
     K(idx{e},idx{e}) = K(idx{e},idx{e}) + Kbe + Kse;
+    M(idx{e},idx{e}) = M(idx{e},idx{e}) + Me;
     f(idx{e},:)      = f(idx{e},:)      + fe;
 end
 

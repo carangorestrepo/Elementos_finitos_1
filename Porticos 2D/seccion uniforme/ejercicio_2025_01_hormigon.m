@@ -38,7 +38,7 @@ xyc= [0,0;
       L1,0;
       L1+L2,0;
       L1+L2+L3,0;
-      L1+L3+L3+L4,0];
+      L1+L2+L3+L4,0];
 
 %% Nudos que conectan elementos
 % x y %% [#nuros,2]

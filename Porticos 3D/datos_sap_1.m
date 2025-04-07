@@ -1,7 +1,8 @@
 clc
 clear
 close all
-datos='sap2000_20_3';
+%datos='sap2000_20_3';
+datos='ejerccio_dinamica';
 %Connectivity - Frame hoja 1
 [NUM1,TXT1,RAW1]=xlsread(datos,'Connectivity - Frame');%%
 % Frame Loads - Distributed

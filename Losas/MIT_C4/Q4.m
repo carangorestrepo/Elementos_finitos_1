@@ -31,7 +31,6 @@ xqf=Lx;
 yqi=0;
 yqf=Ly;
 
-
 Nx=round(Lx/deltax,0);
 dv=round(Nx/n,0);
 Nx=dv*n+1;%% numero de nudos X

@@ -82,9 +82,14 @@ Hb = Db * [ 1  nu 0           % matriz constitutiva de flexion generalizada
 G  = E/(2*(1+nu));     % modulo de cortante
 Hs = (5/6)*G*h*eye(2); % matriz constitutiva de cortante generalizada (Dse)
 
+%T = rho * diag([h, h^3/12, h^3/12]);
+
+T = rho * diag([h, 0, 0]);
+
 %% ensamblo la matriz de rigidez global y el vector de fuerzas nodales
 %  equivalentes global
 K   = sparse(ngdl,ngdl);    % matriz de rigidez global como RALA (sparse)
+M   = sparse(ngdl,ngdl);    % matriz de masa global como RALA (sparse)
 f   = zeros(ngdl,1);        % vector de fuerzas nodales equivalentes global
 N   = cell(nef, n_gl, n_gl);
 Bb  = cell(nef, n_gl, n_gl);
@@ -104,6 +109,7 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
     %% Ciclo sobre los puntos de Gauss para calcular Kbe, Kse y fe
     Kbe = zeros(12);
     Kse = zeros(12);
+    Me = zeros(12);
     fe  = zeros(12,1);
     det_Je = zeros(n_gl,n_gl); % almacenara los Jacobianos
     
@@ -172,7 +178,11 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
             %% se arma la matriz de rigidez del elemento e por cortante (eq. 47)
             Kse = Kse + Bs{e,pp,qq}'*Hs*Bs{e,pp,qq}*det_Je(pp,qq)*w_gl(pp)*w_gl(qq);
             
-            %% vector de fuerzas nodales equivalentes        
+            %% vector de fuerzas nodales equivalentes
+            
+            %% se arma la matriz de masa del elemento e  (eq. 47)
+            
+            Me = Me + N{e,pp,qq}'*T*N{e,pp,qq}*det_Je(pp,qq)*w_gl(pp)*w_gl(qq);
             if (xe(1) >= xqi && xe(2) <= xqf) && ...
                (ye(2) >= yqi && ye(3) <= yqf)
                 fe = fe + N{e,pp,qq}'*[q 0 0]'*det_Je(pp,qq)*w_gl(pp)*w_gl(qq);
@@ -188,6 +198,7 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
     %% ensamblaje matricial
     idx{e} = [ gdl(LaG(e,1),:) gdl(LaG(e,2),:) gdl(LaG(e,3),:) gdl(LaG(e,4),:) ];    
     K(idx{e},idx{e}) = K(idx{e},idx{e}) + Kbe + Kse;
+    M(idx{e},idx{e}) = M(idx{e},idx{e}) + Me;
     f(idx{e},:)      = f(idx{e},:)      + fe;
 end
 

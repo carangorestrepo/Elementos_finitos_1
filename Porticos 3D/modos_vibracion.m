@@ -4,7 +4,7 @@
 %gama=[1,0,0;0,1,0;0,0,1;1,0,0;0,1,0;0,0,1;1,0,0;0,1,0;0,0,1];
 %% defino parametros de espectro de respuesta NSR-10
 %% parematrios para espectro medellin
-Aa=0.15;%% aceleración pico efectiva
+Aa=0.20;%% aceleración pico efectiva
 Av=0.2;%% velocidad pico efectiva
 I=1;%% importancia
 suelo=5;% suelo tipo D
@@ -17,7 +17,7 @@ sizem=size(m,1);
 %% grados de livertad por nudo
 GL=6;
 %% numero de modos de vibración 
-n=50;
+n=6;
 OPT.maxit = 10000;
 OPT.tol   = 1e-32;
 %OPT.issym = 1;  % La matriz Kdd es simetrica
@@ -36,7 +36,7 @@ Phi = Phi./repmat(sqrt(diag(Phi'*m*Phi)'),size(Phi,1),1); % normaliza los modos
 %iteraciones=200;
 %[Phi,Omega1,T1]=estodola(k,m,iteraciones,n);
 sa=espectro(Aa,Av,I,suelo,Te);
-def=sa*9.8067./(Omega).^2;
+def=sa*9.8065174./(Omega).^2;
 phim=(Phi'*m)';
 meff=(Phi'*m*gama).^2;% claculo de masa modal efectiva 
 alfa=(Phi'*m*gama);%coeficiente de participación 

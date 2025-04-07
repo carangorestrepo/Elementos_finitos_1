@@ -27,10 +27,10 @@ EFtype = DKMQ;
 X = 1; Y = 2; Z = 3; % un par de constantes que ayudaran en la 
 ww= 1; tx= 2; ty= 3; % lectura del codigo
 
-E  = 210000;       % [Pa]    modulo de elasticidad = 210GPa
-nu = 0.3;         %         coeficiente de Poisson
-h  = 0.05;        % [m]     espesor de la losa
-q  = -10;      % [N/m^2] carga
+%E  = 210000;       % [Pa]    modulo de elasticidad = 210GPa
+%nu = 0.3;         %         coeficiente de Poisson
+%h  = 0.05;        % [m]     espesor de la losa
+%q  = -10;      % [N/m^2] carga
 
 % Definimos la geometria de la losa
 %losa
@@ -74,7 +74,7 @@ xw=TriGaussPoints(n);
 x_gl = xw(:,1);
 e_gl = xw(:,2);
 w_gl =  xw(:,3);
-n_gl = size(x_gl,1);  %# Número de puntos de Gauss.
+n_gl = size(x_gl,1);  %# N?mero de puntos de Gauss.
 
 
 %% Se leen las funciones de forma N y P y sus derivadas dN_dxi, dN_deta
@@ -102,10 +102,11 @@ Hb = Db * [ 1  nu 0           % matriz constitutiva de flexion generalizada
 
 G  = E/(2*(1+nu));     % modulo de cortante
 Hs = (5/6)*G*h*eye(2); % matriz constitutiva de cortante generalizada (Dse)
-
+T = rho * diag([h, 0, 0]);
 %% ensamblo la matriz de rigidez global y el vector de fuerzas nodales
 %  equivalentes global
 K   = sparse(ngdl,ngdl);    % matriz de rigidez global como RALA (sparse)
+M   = sparse(ngdl,ngdl);    % matriz de masa global como RALA (sparse)
 f   = zeros(ngdl,1);        % vector de fuerzas nodales equivalentes global
 N   = cell(nef, n_gl, n_gl);
 Bb  = cell(nef, n_gl, n_gl);
@@ -117,7 +118,8 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
     x21 = xe(2) - xe(1);         y21 = ye(2) - ye(1); 
     x32 = xe(3) - xe(2);         y32 = ye(3) - ye(2);
     x31 = xe(3) - xe(1);         y31 = ye(3) - ye(1);    
-
+    
+    x13 = xe(1) - xe(3);         y13 = ye(1) - ye(3);    
     xji = [ x21 x32 x13];   yji = [ y21 y32 y13];   
     
     Lk = hypot(xji, yji);      Ck =xji./Lk;      Sk = yji./Lk;
@@ -134,6 +136,7 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
     %% Ciclo sobre los puntos de Gauss para calcular Kbe, Kse y fe
     Kbe = zeros(9);
     Kse = zeros(9);
+    Me = zeros(9);
     fe  = zeros(9,1);
     det_Je = zeros(n_gl,1); % almacenara los Jacobianos
     
@@ -206,12 +209,13 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
             
             %% se arma la matriz de rigidez del elemento e por cortante (eq. 47)
             Kse = Kse + Bs{e,pp}'*Hs*Bs{e,pp}*det_Je(pp)*w_gl(pp);
-            
+            %% se arma la matriz de masa del elemento e  (eq. 47)
+            Me = Me + N{e,pp}'*T*N{e,pp}*det_Je(pp)*w_gl(pp);
             %% vector de fuerzas nodales equivalentes        
-            if (xe(1) >= 0 && xe(2) <= 2) && ...
-               (ye(2) >= 0 && ye(3) <= 4)
+           % if (xe(1) >= 0 && xe(2) <= 2) && ...
+           %    (ye(2) >= 0 && ye(3) <= 4)
                 fe = fe + N{e,pp}'*[q 0 0]'*det_Je(pp)*w_gl(pp);
-            end
+           % end
         %end
     end
     
@@ -223,6 +227,7 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
     %% ensamblaje matricial
     idx{e} = [ gdl(LaG(e,1),:) gdl(LaG(e,2),:) gdl(LaG(e,3),:) ];    
     K(idx{e},idx{e}) = K(idx{e},idx{e}) + Kbe + Kse;
+    M(idx{e},idx{e}) = M(idx{e},idx{e}) + Me;
     f(idx{e},:)      = f(idx{e},:)      + fe;
 end
 
