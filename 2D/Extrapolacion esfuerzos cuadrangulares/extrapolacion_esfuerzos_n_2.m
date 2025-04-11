@@ -51,7 +51,7 @@ for i = 1:nno
       eta_gl = xnod(i,2);      
       A2(i,:) = [  1....
                 xi_gl, eta_gl,...
-                  xi_gl*eta_gl];
+                xi_gl*eta_gl];
 end
         mensaje = 'EF lagrangiano rectangular de 16 nodos';   
 %% Se reporta la matriz

@@ -2,15 +2,12 @@ clear all
 close
 clc
 %% constantes que ayudarán en la lectura del código
-X = 1; Y = 2; Z = 3; % un par de constantes que ayudaran en la 
-ww= 1; tx= 2; ty= 3; % lectura del codigo
-
+X = 1; Y = 2;
 
 %%
-E=24870062;
+E=4700*sqrt(28)*1000;
 nu=0.25;
 t=0.2;
-qa  = -(4.6*1.2+1.8*1.6+0.2*24);         % [kN/m^2] carga
 Lx=4;
 Ly=4;
 deltax=0.1;
@@ -189,8 +186,7 @@ if EEyf==123
            gdl(lado_yLy,tx)]; 
 elseif EEyf==12 
     cyf = [gdl(lado_yLy,ww);
-           gdl(lado_yLy,ty)];
-    
+           gdl(lado_yLy,ty)];   
 elseif EEyf==0  
     cyf=NaN;   
 end
@@ -202,3 +198,4 @@ TF = isnan(c);
 f=find(TF==0);
 c=c(f,1);
 d = setdiff(1:ngdl,c)';
+

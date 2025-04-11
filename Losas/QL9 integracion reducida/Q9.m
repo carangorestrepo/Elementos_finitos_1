@@ -5,14 +5,13 @@ clc
 X = 1; Y = 2; Z = 3; % un par de constantes que ayudaran en la 
 ww= 1; tx= 2; ty= 3; % lectura del codigo
 
-
 %%
-E=24870062;
+E=4700*sqrt(28)*1000;
 nu=0.25;
 t=0.2;
-qa  = -(4.6*1.2+1.8*1.6+0.2*24);         % [kN/m^2] carga
 Lx=4;
 Ly=4;
+q  = -(4.6*1.2+1.8*1.6+0.2*24);         % [kN/m^2] carga
 deltax=0.1;
 deltay=0.1;
 n=2;
@@ -26,6 +25,7 @@ EEyf=123;
 Nx=round(Lx/deltax,0);
 dv=round(Nx/n,0);
 Nx=dv*n+3;%% numero de nudos X
+
 
 Ny=round(Ly/deltay,0);
 dv=round(Ny/n,0);
@@ -43,7 +43,7 @@ xnod=[Bx,By];
 %% nudos elemento
 nnoi =(1:Ny*Nx)';% numero de nodos
 nno  = size(xnod,1); % numero de nodos (numero de filas de xnod)
-text(Bx,By,num2str(nnoi)),hold on
+%text(Bx,By,num2str(nnoi)),hold on
 %% nugos grilla elemento
 Nudosg = reshape(nnoi,[Ny,Nx]);
 
@@ -51,30 +51,15 @@ recorridox=3:2:Nx;
 Nelex=size(recorridox,2);
 recorridoy=3:2:Ny;
 Neley=size(recorridoy,2);
-nef=Nelex*Neley*2;% numero de EFs (numero de filas de LaG)
-%LaG=zeros(nef,9);
-LaG1=zeros(nef,6);
-LaG2=zeros(nef,6);
-LaG=zeros(nef,6);
-recorridoLaG=1:2:nef*2;
+nef=Nelex*Neley;% numero de EFs (numero de filas de LaG)
+LaG=zeros(nef,9);
 e=1;
 LaGc = cell(nef,1); 
 xeg = cell(nef,1); 
 yeg = cell(nef,1); 
-
-xe1 =zeros(nef,6);
-ye1 =zeros(nef,6);
-
-xe2 =zeros(nef,6);
-ye2 =zeros(nef,6);
-
-xe =zeros(nef,6);
-ye =zeros(nef,6);
-
-cg1 = zeros(nef,2); % almacena el centro de gravedad de los EFs
-cg2 = zeros(nef,2); % almacena el centro de gravedad de los EFs
-
-cg = zeros(nef,2);
+xe =zeros(nef,9);
+ye =zeros(nef,9);
+cg = zeros(nef,2); % almacena el centro de gravedad de los EFs
 for ey=1:(Neley)
     for ex=1:(Nelex)
        %%nudos por elemento
@@ -82,49 +67,15 @@ for ey=1:(Neley)
        %coordenadas elemento
        xeg{e}=Xe((recorridoy(ey)-2):recorridoy(ey),(recorridox(ex)-2):recorridox(ex)); 
        yeg{e}=Ye((recorridoy(ey)-2):recorridoy(ey),(recorridox(ex)-2):recorridox(ex)); 
-       % se determinan las coordenadas de los nodos el EF 
-       LaG1(e,:)=[LaGc{e}(1,3),LaGc{e}(3,1),LaGc{e}(1,1),...
-                  LaGc{e}(2,2),LaGc{e}(2,1),LaGc{e}(1,2)];
-              
-       LaG2(e,:)=[LaGc{e}(1,3),LaGc{e}(3,3),LaGc{e}(3,1),...
-                  LaGc{e}(2,3),LaGc{e}(3,2),LaGc{e}(2,2)]; 
-              
-       LaG(recorridoLaG(e),:)=LaG1(e,:);
-       LaG(recorridoLaG(e)+1,:)=LaG2(e,:);
-       
-       xe1(e,:)=[xeg{e}(1,3),xeg{e}(3,1),xeg{e}(1,1),...
-                 xeg{e}(2,2),xeg{e}(2,1),xeg{e}(1,2)];
-             
-       xe2(e,:)=[xeg{e}(1,3),xeg{e}(3,3),xeg{e}(3,1),...
-                 xeg{e}(2,3),xeg{e}(3,2),xeg{e}(2,2)]; 
-       
-       xe(recorridoLaG(e),:)=xe1(e,:);
-       xe(recorridoLaG(e)+1,:)=xe2(e,:);
-       
-       ye1(e,:)=[yeg{e}(1,3),yeg{e}(3,1),yeg{e}(1,1),...
-                 yeg{e}(2,2),yeg{e}(2,1),yeg{e}(1,2)];
-             
-       ye2(e,:)=[yeg{e}(1,3),yeg{e}(3,3),yeg{e}(3,1),...
-                 yeg{e}(2,3),yeg{e}(3,2),yeg{e}(2,2)];
-       
-       ye(recorridoLaG(e),:)=ye1(e,:);
-       ye(recorridoLaG(e)+1,:)=ye2(e,:);
-       
-       %LaG(e,:)=[LaGc{e}(1,1),LaGc{e}(1,2),LaGc{e}(1,3),LaGc{e}(2,3),LaGc{e}(3,3),LaGc{e}(3,2),LaGc{e}(3,1),LaGc{e}(2,1),LaGc{e}(2,2)];
-       %xe(e,:)=[xeg{e}(1,1),xeg{e}(1,2),xeg{e}(1,3),xeg{e}(2,3),xeg{e}(3,3),xeg{e}(3,2),xeg{e}(3,1),xeg{e}(2,1),xeg{e}(2,2)];
-       %ye(e,:)=[yeg{e}(1,1),yeg{e}(1,2),yeg{e}(1,3),yeg{e}(2,3),yeg{e}(3,3),yeg{e}(3,2),yeg{e}(3,1),yeg{e}(2,1),yeg{e}(2,2)];
+       % se determinan las coordenadas de los nodos el EF e
+       LaG(e,:)=[LaGc{e}(1,1),LaGc{e}(1,2),LaGc{e}(1,3),LaGc{e}(2,3),LaGc{e}(3,3),LaGc{e}(3,2),LaGc{e}(3,1),LaGc{e}(2,1),LaGc{e}(2,2)];
+       xe(e,:)=[xeg{e}(1,1),xeg{e}(1,2),xeg{e}(1,3),xeg{e}(2,3),xeg{e}(3,3),xeg{e}(3,2),xeg{e}(3,1),xeg{e}(2,1),xeg{e}(2,2)];
+       ye(e,:)=[yeg{e}(1,1),yeg{e}(1,2),yeg{e}(1,3),yeg{e}(2,3),yeg{e}(3,3),yeg{e}(3,2),yeg{e}(3,1),yeg{e}(2,1),yeg{e}(2,2)];
        % se calcula la posición del centro de gravedad del EF e
-       cg1(e,:) = [mean(xe1(e,:)),mean(ye1(e,:))];
-       cg2(e,:) = [mean(xe2(e,:)),mean(ye2(e,:))];
-       
-       cg(recorridoLaG(e),:)=cg1(e,:);
-       cg(recorridoLaG(e)+1,:)=cg2(e,:);
-       
+       cg(e,:) = [mean(xe(e,:)),mean(ye(e,:))];
        % se escribe el numero del EF e
-       text(cg1(e,X), cg1(e,Y), num2str(recorridoLaG(e)), 'Color', 'b');
-       text(cg2(e,X), cg2(e,Y), num2str(recorridoLaG(e)+1), 'Color', 'b');
-       
-       plot(xe1(e,[1,4,2,5,3,6,1]),ye1(e,[1,4,2,5,3,6,1]),xe2(e,[1,4,2,5,3,6,1]),ye2(e,[1,4,2,5,3,6,1]))
+       text(cg(e,X), cg(e,Y), num2str(e), 'Color', 'b');
+       plot(xe(e,[1:8,1]),ye(e,[1:8,1]))
        e=e+1;
     end
 end
@@ -202,3 +153,4 @@ TF = isnan(c);
 f=find(TF==0);
 c=c(f,1);
 d = setdiff(1:ngdl,c)';
+

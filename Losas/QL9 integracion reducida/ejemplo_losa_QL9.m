@@ -1,6 +1,6 @@
 %% Calculo de los desplazamientos verticales y angulos de giro, las 
 % reacciones, los momentos flectores y las fuerzas cortantes en una losa de
-% Mindlin utilizando los elementos finitos de placa "TL6"
+% Mindlin utilizando los elementos finitos de placa "QL9"
 
 %%
 %clear, clc, close all   % borro la memoria, la pantalla y las figuras
@@ -8,10 +8,10 @@
 %% defino las variables/constantes
 X = 1; Y = 2;        % un par de constantes que ayudaran en la 
 ww= 1; tx= 2; ty= 3; % lectura del codigo
-%E  = 210000;          % modulo de elasticidad del solido (Pa) = 210GPa
+%E  = 210e9;          % modulo de elasticidad del solido (Pa) = 210GPa
 %nu = 0.3;            % coeficiente de Poisson
 %t  = 0.05;           % espesor de la losa (m)
-%qdistr = -10;     % carga (N/m^2)
+%qdistr = -10000;     % carga (N/m^2)
 
 % Definimos la geometria de la losa (creada con "generar_malla_losa.m")
 %load malla_losa
@@ -19,33 +19,29 @@ ww= 1; tx= 2; ty= 3; % lectura del codigo
 % xnod - posicion (x,y) de los nodos
 % LaG  - definicion de elementos finitos con respecto a nodos
 
-nno  = size(xnod,1); % numero de nodos (numero de filas de xnod)
-ngdl = 3*nno;        % numero de grados de libertad (tres por nodo)
-gdl  = [(1:3:ngdl)' (2:3:ngdl)' (3:3:ngdl)']; % nodos vs grados de libertad
-nef  = size(LaG,1);  % numero de EFs (numero de filas de LaG)
+nef   = size(LaG,1);  % numero de EFs (numero de filas de LaG)
 nnoef = size(LaG,2);  % numero de nodos por EF
+nno   = size(xnod,1); % numero de nodos (numero de filas de xnod)
+ngdl  = 3*nno;        % numero de grados de libertad (tres por nodo)
+
+gdl  = [(1:3:ngdl)' (2:3:ngdl)' (3:3:ngdl)']; % nodos vs grados de libertad
 
 %% Se dibuja la malla de elementos finitos
-figure;
+figure; 
 hold on;
-cg = zeros(nef,2); % almacena el centro de gravedad de los EFs
 for e = 1:nef
-   % se dibuja el EF e
-   nod_ef = LaG(e,[1,4,2,5,3,6,1]);
-   plot(xnod(nod_ef,X), xnod(nod_ef,Y), 'b');
+   line(xnod(LaG(e,[1:8 1]),X), xnod(LaG(e,[1:8 1]),Y));
    
-   % se calcula la posición del centro de gravedad del EF e
-   cg(e,:) = mean(xnod(LaG(e,:),:));
-
-   % se escribe el número del EF e
-   text(cg(e,X), cg(e,Y), num2str(e), 'Color', 'b');
+   % Calculo la posicion del centro de gravedad del elemento finito
+   cgx = mean(xnod(LaG(e,:), X));
+   cgy = mean(xnod(LaG(e,:), Y));
+   text(cgx+0.03, cgy+0.03, num2str(e), 'Color', [1 0 0]);
 end
-
-% en todos los nodos se dibuja un marcador y se reporta su numeración
-plot(xnod(:,X), xnod(:,Y), 'ro');
+plot(xnod(:,X), xnod(:,Y), 'rx');
 text(xnod(:,X), xnod(:,Y), num2str((1:nno)'));
-axis equal tight
-title('Malla de elementos finitos');
+axis([-0.5, 2.5, -0.5, 4.5])
+title('Malla de una losa con EFs QL9');
+
 %% Se cargan las funciones de forma junto con sus derivadas
 % Se cargan las funciones de forma del elemento lagrangiano de 9 nodos 
 % junto con sus derivadas con respecto a xi y a eta
@@ -53,37 +49,40 @@ title('Malla de elementos finitos');
 % programa "codigo/2D/deduccion_funciones_forma/FF_lagrangianos_Q9.m"
 
 %% N son las funciones de forma del elemento lagrangiano de 9 nodos
- Nforma =  @(xi, eta) [...
- (eta + xi - 1)*(2*eta + 2*xi - 1)
-                     xi*(2*xi - 1)
-                   eta*(2*eta - 1)
-            -xi*(4*eta + 4*xi - 4)
-                          4*eta*xi
-           -eta*(4*eta + 4*xi - 4) 
-                             ];
+Nforma = @(xi,eta) [ ...
+        (eta*xi*(eta - 1)*(xi - 1))/4               % N1
+        -(eta*(xi^2 - 1)*(eta - 1))/2               % N2
+        (eta*xi*(eta - 1)*(xi + 1))/4               % N3
+        -(xi*(eta^2 - 1)*(xi + 1))/2                % N4
+        (eta*xi*(eta + 1)*(xi + 1))/4               % N5
+        -(eta*(xi^2 - 1)*(eta + 1))/2               % N6
+        (eta*xi*(eta + 1)*(xi - 1))/4               % N7
+        -(xi*(eta^2 - 1)*(xi - 1))/2                % N8
+        (eta^2 - 1)*(xi^2 - 1)          ];          % N9
  
 %% Derivadas de N con respecto a xi
 dN_dxi = @(xi,eta) [ ...
- 4*eta + 4*xi - 3
-         4*xi - 1
-                0
- 4 - 8*xi - 4*eta
-            4*eta
-           -4*eta                     
-];  % dN6_dxi   
-
+        (eta*(2*xi - 1)*(eta - 1))/4                % dN1_dxi
+        -eta*xi*(eta - 1)                           % dN2_dxi
+        (eta*(2*xi + 1)*(eta - 1))/4                % dN3_dxi
+        -((eta^2 - 1)*(2*xi + 1))/2                 % dN4_dxi
+        (eta*(2*xi + 1)*(eta + 1))/4                % dN5_dxi
+        -eta*xi*(eta + 1)                           % dN6_dxi
+        (eta*(2*xi - 1)*(eta + 1))/4                % dN7_dxi
+        -((eta^2 - 1)*(2*xi - 1))/2                 % dN8_dxi
+        2*xi*(eta^2 - 1)                ];          % dN9_dxi
  
 %% Derivadas de N con respecto a eta
-%% Derivadas de N con respecto a eta
 dN_deta = @(xi,eta) [ ...
- 4*eta + 4*xi - 3
-                0
-        4*eta - 1
-            -4*xi
-             4*xi
- 4 - 4*xi - 8*eta                        
-];  % dN6_deta
-
+        (xi*(2*eta - 1)*(xi - 1))/4                 % dN1_deta
+        -((2*eta - 1)*(xi^2 - 1))/2                 % dN2_deta
+        (xi*(2*eta - 1)*(xi + 1))/4                 % dN3_deta
+        -eta*xi*(xi + 1)                            % dN4_deta
+        (xi*(2*eta + 1)*(xi + 1))/4                 % dN5_deta
+        -((2*eta + 1)*(xi^2 - 1))/2                 % dN6_deta
+        (xi*(2*eta + 1)*(xi - 1))/4                 % dN7_deta
+        -eta*xi*(xi - 1)                            % dN8_deta
+        2*eta*(xi^2 - 1)                ];          % dN9_deta
 %% parametros de la cuadratura de Gauss-Legendre (INTEGRACION SELECTIVA)
 % se asumira aqui el mismo orden de la cuadratura tanto en la direccion de
 % xi como en la direccion de eta
@@ -105,23 +104,10 @@ n_gl_s = 2; % orden de la cuadratura de GL para la integracion de Ks
 %}
 
 % calcula las raices (x_gl) y los pesos (w_gl) de polinomios de Legendre
+[x_gl_b, w_gl_b]  = gausslegendre_quad(n_gl_b);
+[x_gl_s, w_gl_s]  = gausslegendre_quad(n_gl_s);
 
-xw=TriGaussPoints(n_gl_b);
 
-x_gl_b = xw(:,1);
-e_gl_b = xw(:,2);
-w_gl_b =  xw(:,3);
-n_gl_b = size(x_gl_b,1);  %# N�mero de puntos de Gauss.
-
-xw=TriGaussPoints(n_gl_s);
-
-x_gl_s = xw(:,1);
-e_gl_s = xw(:,2);
-w_gl_s =  xw(:,3);
-n_gl_s = size(x_gl_s,1);  %# N�mero de puntos de Gauss.
-
-%[x_gl_b, w_gl_b]  = gausslegendre_quad(n_gl_b);
-%[x_gl_s, w_gl_s]  = gausslegendre_quad(n_gl_s);
 
 %% matrices constitutivas del elemento
 Db = (E/(1-nu^2))* [ 1    nu   0
@@ -153,139 +139,75 @@ for e = 1:nef      % ciclo sobre todos los elementos finitos
     
    %% se calcula la matriz de rigidez de flexion Kb del elemento e 
    Kbe = zeros(3*nnoef);
-   det_Je_b = zeros(n_gl_b,1); % Jacobianos con n_gl_b puntos de integracion   
+   det_Je_b = zeros(n_gl_b); % Jacobianos con n_gl_b puntos de integracion   
    for p = 1:n_gl_b
-      %for q = 1:n_gl_b
+      for q = 1:n_gl_b
          xi_gl  = x_gl_b(p);
-         eta_gl = e_gl_b(p);
-         
-         %% Se evaluan las derivadas de las funciones de forma en los puntos
-        %% de integracion de Gauss-Legendre
-        ddN_dxi  = dN_dxi (xi_gl, eta_gl);
-        ddN_deta = dN_deta(xi_gl, eta_gl);
+         eta_gl = x_gl_b(q);
+         [Bb{e,p,q}, det_Je_b(p,q)] = Bb_RM(xi_gl, eta_gl, xe, ye, dN_dxi, dN_deta);
 
-        %% Se utilizan las funciones de forma de w para el calculo de la 
-        %% transformacion isoparametrica
-        dx_dxi  = sum(ddN_dxi  .* xe);   dy_dxi  = sum(ddN_dxi  .* ye);
-        dx_deta = sum(ddN_deta .* xe);   dy_deta = sum(ddN_deta .* ye);
-
-        %% Se ensambla la matriz Jacobiana del elemento
-        Je = [ dx_dxi   dy_dxi
-               dx_deta  dy_deta ];
-
-        %% Se calcula el determinante del Jacobiano
-        det_Je_b(p) = det(Je);
-        if det_Je_b(p) <= 0
-           error('El det_Je es negativo');
-        end
-
-        %% Se ensambla la matriz de deformacion del elemento Bb
-        nno_b = length(xe);
-        Bbi = zeros(3,3*nno_b);
-        for i = 1:nno_b   
-           dNi_dx = (+dy_deta*ddN_dxi(i) - dy_dxi*ddN_deta(i))/det_Je_b(p);
-           dNi_dy = (-dx_deta*ddN_dxi(i) + dx_dxi*ddN_deta(i))/det_Je_b(p);
-
-           Bbi(:,(3*i-2):(3*i)) = [ 0 -dNi_dx       0    % se ensambla y
-                                   0       0 -dNi_dy    % asigna la matriz
-                                   0 -dNi_dy -dNi_dx ]; % Bb_i
-        end
-         %[Bb{e,p}, det_Je_b(p)] = Bb_RM(xi_gl, eta_gl, xe, ye, dN_dxi, dN_deta);
          % se arma la matriz de rigidez del elemento e
-         Bb{e,p}=Bbi;
-         Kbe = Kbe + Bb{e,p}'*Dbg*Bb{e,p}*det_Je_b(p)*w_gl_b(p);
-      %end
+         Kbe = Kbe + Bb{e,p,q}'*Dbg*Bb{e,p,q}*det_Je_b(p,q)*w_gl_b(p)*w_gl_b(q);
+      end
    end
    
    %% se calcula la matrix Ks
    Kse = zeros(3*nnoef);   
    det_Je_s = zeros(n_gl_s); % Jacobianos con n_gl_s puntos de integracion
    for p = 1:n_gl_s
-      %for q = 1:n_gl_s
+      for q = 1:n_gl_s
          xi_gl  = x_gl_s(p);        
-         eta_gl = e_gl_s(p);
-         
-         %% Se evaluan las funciones de forma en los puntos de integracion
-        %% de Gauss-Legendre
-        NNforma = Nforma(xi_gl, eta_gl);
+         eta_gl = x_gl_s(q);
+         [Bs{e,p,q}, det_Je_s(p,q)] = Bs_RM(xi_gl, eta_gl, xe, ye, Nforma, dN_dxi, dN_deta);   
 
-        %% Se evaluan las derivadas de las funciones de forma en los puntos
-        %% de integracion de Gauss-Legendre
-        ddN_dxi  = dN_dxi (xi_gl, eta_gl);
-        ddN_deta = dN_deta(xi_gl, eta_gl);
-
-        %% Se utilizan las funciones de forma de w para el calculo de la 
-        %% transformacion isoparametrica
-        dx_dxi  = sum(ddN_dxi  .* xe);   dy_dxi  = sum(ddN_dxi  .* ye);
-        dx_deta = sum(ddN_deta .* xe);   dy_deta = sum(ddN_deta .* ye);
-
-        %% Se ensambla la matriz Jacobiana del elemento
-        Je = [ dx_dxi   dy_dxi
-               dx_deta  dy_deta ];
-
-        %% Se calcula el determinante del Jacobiano
-        det_Je_s(p) = det(Je);
-        if det_Je_s(p) <= 0
-           error('El det_Je es negativo');
-        end
-
-        %% Se ensambla la matriz de deformacion del elemento Bs
-        nno_s = length(xe);
-        Bsi  = zeros(2,3*nno_s);
-        for i = 1:nno_s
-           dNi_dx = (+dy_deta*ddN_dxi(i) - dy_dxi*ddN_deta(i))/det_Je_s(p);
-           dNi_dy = (-dx_deta*ddN_dxi(i) + dx_dxi*ddN_deta(i))/det_Je_s(p);
-           % se ensambla y asigna la matriz Bs_i
-           Bsi(:,(3*i-2):(3*i)) = [ dNi_dx  -NNforma(i)  0     
-                                   dNi_dy  0            -NNforma(i) ];                        
-        end    
-        Bs{e,p}=Bsi;
-         %[Bs{e,p}, det_Je_s(p)] = Bs_RM(xi_gl, eta_gl, xe, ye, Nforma, dN_dxi, dN_deta);   
          % se arma la matriz de rigidez del elemento e
-         Kse = Kse + Bs{e,p}'*Dsg*Bs{e,p}*det_Je_s(p)*w_gl_s(p);         
-      %end
+         Kse = Kse + Bs{e,p,q}'*Dsg*Bs{e,p,q}*det_Je_s(p,q)*w_gl_s(p)*w_gl_s(q);         
+      end
    end 
    
    %% se calcula la matriz NN
    Mbe = zeros(3*nnoef); % matriz que se utiliza en el calculo de fe   
    for p = 1:n_gl_b
-      %for q = 1:n_gl_b
+      for q = 1:n_gl_b
          xi_gl  = x_gl_b(p);
-         eta_gl = e_gl_b(p);
+         eta_gl = x_gl_b(q);
          % Se evaluan las funciones de forma en los puntos de integracion
          % de Gauss-Legendre
          N = Nforma(xi_gl, eta_gl);
          
          % Se ensambla la matriz de funciones de forma N
-         NN{e,p} = zeros(3,3*nnoef);
+         NN{e,p,q} = zeros(3,3*nnoef);
          for i = 1:nnoef            
-            NN{e,p}(:,3*i-2:3*i) = diag([N(i) N(i) N(i)]);
+            NN{e,p,q}(:,3*i-2:3*i) = diag([N(i) N(i) N(i)]);
          end
    
          % matriz requerida para calcular el vector de fuerzas nodales 
          % equivalentes (se utiliza la integracion completa)
-         Mbe = Mbe + NN{e,p}'*NN{e,p}*det_Je_b(p)*w_gl_b(p);                                              % REVISAR !!!!!!!!!!!!!!!!   
-      %end
+         Mbe = Mbe + NN{e,p,q}'*NN{e,p,q}*det_Je_b(p,q)*w_gl_b(p)*w_gl_b(q);                                              % REVISAR !!!!!!!!!!!!!!!!   
+      end
    end  
    
    %% se calcula el vector de fuerzas nodales equivalentes del elemento e      
-   %xa = xnod(LaG(e,1),X);   ya = xnod(LaG(e,1),Y);
-   %xb = xnod(LaG(e,5),X);   yb = xnod(LaG(e,5),Y);
-   %if (xa >= 0 && xb <= 2) && (ya >= 0 && yb <= 4)
-      ffe = zeros(nnoef, 3); ffe(:,ww) = qa;
-      ffe = reshape(ffe', 3*nnoef,1);                                                                                             % REVISAR !!!!!!!!!!!!!
+   xa = xnod(LaG(e,1),X);   ya = xnod(LaG(e,1),Y);
+   xb = xnod(LaG(e,5),X);   yb = xnod(LaG(e,5),Y);
+   %if (xa >= 0.9999 && xb <= 1.601) && (ya >= 0.9999 && yb <= 2.001)
+   %   ffe = zeros(nnoef, 3); ffe(:,ww) = q;
+   %   ffe = reshape(ffe', 3*nnoef,1);                                                                                             % REVISAR !!!!!!!!!!!!!
    %else
-    %  ffe = zeros(3*nnoef,1);
+   %   ffe = zeros(3*nnoef,1);
    %end  
-   fe = Mbe*ffe;   
+    ffe = zeros(nnoef, 3);
+    ffe(:,ww) = q;
+    ffe = reshape(ffe', 3*nnoef,1);       
    
    %% se asocian los grados de libertad del elemento locales a los globales
    idx{e} = [ gdl(LaG(e,1),:)  gdl(LaG(e,2),:)  gdl(LaG(e,3),:)  ...
-              gdl(LaG(e,4),:)  gdl(LaG(e,5),:)  gdl(LaG(e,6),:)];
+              gdl(LaG(e,4),:)  gdl(LaG(e,5),:)  gdl(LaG(e,6),:) ...
+              gdl(LaG(e,7),:)  gdl(LaG(e,8),:)  gdl(LaG(e,9),:) ];
 
    %% se procede al ensamblaje
    K(idx{e},idx{e}) = K(idx{e},idx{e}) + Kbe + Kse;
-   f(idx{e})        = f(idx{e}) + fe;
+   f(idx{e})        = f(idx{e}) + ffe;
 end
 
 %% Muestro la configuracion de la matriz K (K es rala)
@@ -355,17 +277,17 @@ end
 %}
 
 %% Se dibuja el plano medio de la malla de elementos finitos y las deformaciones de esta
-escala = 1;            % factor de escalamiento de la deformada
+escala = 5000;            % factor de escalamiento de la deformada
 xdef   = escala*vect_mov; % posicion de la deformada
 figure; 
 hold on; 
 grid on;
 colorbar
 for e = 1:nef
-   fill3(xnod(LaG(e,[1,4,2,5,3,6,1]),X), ...
-         xnod(LaG(e,[1,4,2,5,3,6,1]),Y), ...
-         xdef(LaG(e,[1,4,2,5,3,6,1]),ww),...
-         xdef(LaG(e,[1,4,2,5,3,6,1]),ww)); %deformada
+   fill3(xnod(LaG(e,[1:8 1]),X), ...
+         xnod(LaG(e,[1:8 1]),Y), ...
+         xdef(LaG(e,[1:8 1]),ww),...
+         xdef(LaG(e,[1:8 1]),ww)); %deformada
 end
 daspect([1 1 1]); % similar a "axis equal", pero en 3D
 axis tight
@@ -374,6 +296,28 @@ title(sprintf('Deformada escalada %d veces', escala), 'FontSize', 20);
 colormap jet
 view(3);
 
+%% Se dibuja de la malla de elementos finitos y las deformaciones de esta
+figure; 
+hold on; 
+grid on;
+colorbar
+for e = 1:nef
+   dibujar_EF_Q89_RM(xnod(LaG(e,:),X), xnod(LaG(e,:),Y), ...
+      Nforma, a(idx{e}), t, escala, escala);
+end
+daspect([1 1 1]); % similar a "axis equal", pero en 3D
+axis tight
+title(sprintf('Deformada escalada %d veces', escala), 'FontSize', 20);
+colormap jet
+view(3);
+
+%% En los puntos de integracion de Gauss-Legendre calcular:
+%% El vector de momentos flectores y torsores (2x2)
+%% El vector de fuerzas cortantes (1x1 o 2x2)
+n_gl_b = 2; [x_gl_b, w_gl_b]  = gausslegendre_quad(n_gl_b);
+
+% Observe que n_gl_s = 1; interpola mal la fuerza cortante.
+n_gl_s = 2; [x_gl_s, w_gl_s]  = gausslegendre_quad(n_gl_s);
 
 %% se calcula de nuevo Bb y Bs en cada punto de GL
 Bb = cell(nef,n_gl_b,n_gl_b); % matrices de deformacion generalizada de flexion
@@ -385,21 +329,21 @@ for e = 1:nef      % ciclo sobre todos los elementos finitos
     %% se calcula la matrix Bb en los puntos de integracion de GL para el
     % calculo de los momentos flectores y torsores
     for p = 1:n_gl_b
-        %for q = 1:n_gl_b
+        for q = 1:n_gl_b
             xi_gl  = x_gl_b(p);
-            eta_gl = e_gl_b(p);
-            Bb{e,p} = Bb_RM(xi_gl, eta_gl, xe, ye, dN_dxi, dN_deta);
-        %end
+            eta_gl = x_gl_b(q);
+            Bb{e,p,q} = Bb_RM(xi_gl, eta_gl, xe, ye, dN_dxi, dN_deta);
+        end
     end
     
     %% se calcula la matrix Bs en los puntos de integracion de GL para el
     % calculo de las fuerzas cortantes
     for p = 1:n_gl_s
-        %for q = 1:n_gl_s
+        for q = 1:n_gl_s
             xi_gl  = x_gl_s(p);
-            eta_gl = e_gl_s(p);
-            Bs{e,p} = Bs_RM(xi_gl, eta_gl, xe, ye, Nforma, dN_dxi, dN_deta);
-        %end
+            eta_gl = x_gl_s(q);
+            Bs{e,p,q} = Bs_RM(xi_gl, eta_gl, xe, ye, Nforma, dN_dxi, dN_deta);
+        end
     end
 end
 
@@ -408,15 +352,15 @@ sigmag_b = cell(nef, n_gl_b, n_gl_b); % momentos flectores y torsores
 sigmag_s = cell(nef, n_gl_s, n_gl_s); % fuerzas cortantes
 for e = 1:nef               % ciclo sobre todos los elementos finitos
    for p = 1:n_gl_b
-      %for q = 1:n_gl_b
-         sigmag_b{e,p} = Dbg*Bb{e,p}*a(idx{e});
-      %end
+      for q = 1:n_gl_b
+         sigmag_b{e,p,q} = Dbg*Bb{e,p,q}*a(idx{e});
+      end
    end
    
    for p = 1:n_gl_s
-      %for q = 1:n_gl_s
-         sigmag_s{e,p} = Dsg*Bs{e,p}*a(idx{e});
-      %end
+      for q = 1:n_gl_s
+         sigmag_s{e,p,q} = Dsg*Bs{e,p,q}*a(idx{e});
+      end
    end
 end
 
@@ -429,38 +373,47 @@ Mxy = zeros(nno,1);
 
 % matriz de extrapolacion de esfuerzos para un elemento lagrangiano de 9
 % nodos
-    % matriz de extrapolación
-Ab=[[    -9,    5/2,    5/2,      5];
-    [    -9,    5/2,      5,    5/2];
-    [   9/4,    5/4,   -5/4,   -5/4];
-    [ 81/16, -35/16, -15/16, -15/16];
-    [ -27/8,   15/8,   15/8,    5/8];
-    [ -27/8,   15/8,    5/8,   15/8]];
+A = [ ... 
+   3^(1/2)/2 + 1,            -1/2,            -1/2,   1 - 3^(1/2)/2
+ 3^(1/2)/4 + 1/4, 1/4 - 3^(1/2)/4, 3^(1/2)/4 + 1/4, 1/4 - 3^(1/2)/4
+            -1/2,   1 - 3^(1/2)/2,   3^(1/2)/2 + 1,            -1/2
+ 1/4 - 3^(1/2)/4, 1/4 - 3^(1/2)/4, 3^(1/2)/4 + 1/4, 3^(1/2)/4 + 1/4
+   1 - 3^(1/2)/2,            -1/2,            -1/2,   3^(1/2)/2 + 1
+ 1/4 - 3^(1/2)/4, 3^(1/2)/4 + 1/4, 1/4 - 3^(1/2)/4, 3^(1/2)/4 + 1/4
+            -1/2,   3^(1/2)/2 + 1,   1 - 3^(1/2)/2,            -1/2
+ 3^(1/2)/4 + 1/4, 3^(1/2)/4 + 1/4, 1/4 - 3^(1/2)/4, 1/4 - 3^(1/2)/4
+             1/4,             1/4,             1/4,             1/4 ];
 
-As=[[ -1/3, -1/3,  5/3];
-    [ -1/3,  5/3, -1/3];
-    [  5/3, -1/3, -1/3]];
- 
-
-     
 for e = 1:nef
-   sigmag_bb=[sigmag_b{e,:}]; 
-   Mx(LaG(e,:),:)  = Mx(LaG(e,:),:)  + Ab * sigmag_bb(1,:)';
+   Mx(LaG(e,:),:)  = Mx(LaG(e,:),:)  + A * [ sigmag_b{e,1,1}(1)
+                                             sigmag_b{e,1,2}(1)
+                                             sigmag_b{e,2,1}(1)
+                                             sigmag_b{e,2,2}(1) ];
 
-   My(LaG(e,:),:)  = My(LaG(e,:),:)  + Ab *  sigmag_bb(2,:)';
+   My(LaG(e,:),:)  = My(LaG(e,:),:)  + A * [ sigmag_b{e,1,1}(2)
+                                             sigmag_b{e,1,2}(2)
+                                             sigmag_b{e,2,1}(2)
+                                             sigmag_b{e,2,2}(2) ];
 
-   Mxy(LaG(e,:),:) = Mxy(LaG(e,:),:) + Ab *  sigmag_bb(3,:)';
+   Mxy(LaG(e,:),:) = Mxy(LaG(e,:),:) + A * [ sigmag_b{e,1,1}(3)
+                                             sigmag_b{e,1,2}(3)
+                                             sigmag_b{e,2,1}(3)
+                                             sigmag_b{e,2,2}(3) ];
 
    switch n_gl_s
      case 1
-       sigmag_ss=[sigmag_s{e,:,:}];  
-       Qx(LaG(e,:),:) = Qx(LaG(e,:),:) +  As * sigmag_ss(1,:)';
-       Qy(LaG(e,:),:) = Qy(LaG(e,:),:) +  As * sigmag_ss(2,:)';
+       Qx(LaG(e,:),:) = Qx(LaG(e,:),:) + sigmag_s{e}(1);
+       Qy(LaG(e,:),:) = Qy(LaG(e,:),:) + sigmag_s{e}(2);
      case 2
-       sigmag_ss=[sigmag_s{e,:,:}];
-       Qx(LaG(e,:),:)  = Qx(LaG(e,:),:)  + As * sigmag_ss(1,:)';
+       Qx(LaG(e,:),:)  = Qx(LaG(e,:),:)  + A * [ sigmag_s{e,1,1}(1)
+                                                 sigmag_s{e,1,2}(1)
+                                                 sigmag_s{e,2,1}(1)
+                                                 sigmag_s{e,2,2}(1) ];
 
-       Qy(LaG(e,:),:)  = Qy(LaG(e,:),:)  + As * sigmag_ss(2,:)';
+       Qy(LaG(e,:),:)  = Qy(LaG(e,:),:)  + A * [ sigmag_s{e,1,1}(2)
+                                                 sigmag_s{e,1,2}(2)
+                                                 sigmag_s{e,2,1}(2)
+                                                 sigmag_s{e,2,2}(2) ];
    end                                         
 
    num_elem_ady(LaG(e,:),:) = num_elem_ady(LaG(e,:),:) + 1;
@@ -514,7 +467,7 @@ function plot_M_or_Q(nef, xnod, LaG, variable, texto, angulos)
     colorbar;
     % Por simplicidad no se graficaran los resultados asociados al nodo 9
     for e = 1:nef  
-       fill(xnod(LaG(e,[1,4,2,5,3,6,1]),X), xnod(LaG(e,[1,4,2,5,3,6,1]),Y), variable(LaG(e,[1,4,2,5,3,6,1])));
+       fill(xnod(LaG(e,1:8),X), xnod(LaG(e,1:8),Y), variable(LaG(e,1:8)));
     end
     axis equal tight
     colormap jet

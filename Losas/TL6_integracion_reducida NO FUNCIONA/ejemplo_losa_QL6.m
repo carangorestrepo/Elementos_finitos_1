@@ -8,14 +8,10 @@
 %% defino las variables/constantes
 X = 1; Y = 2;        % un par de constantes que ayudaran en la 
 ww= 1; tx= 2; ty= 3; % lectura del codigo
-r_ = [ 1, 2, 3, 4, 5, 6, 7, 8,10,11,12];   % GDL a retener en condensación nodal
-e_ = [ 13, 14, 15, 16 ,17 ,18,19,20,21,22,23,24];            % GDL a eliminar en condensación nodal
-
-
-E  = 210000;          % modulo de elasticidad del solido (Pa) = 210GPa
-nu = 0.3;            % coeficiente de Poisson
-t  = 0.05;           % espesor de la losa (m)
-qdistr = -10;     % carga (N/m^2)
+%E  = 210e9;          % modulo de elasticidad del solido (Pa) = 210GPa
+%nu = 0.3;            % coeficiente de Poisson
+%t  = 0.05;           % espesor de la losa (m)
+%qdistr = -10000;     % carga (N/m^2)
 
 % Definimos la geometria de la losa (creada con "generar_malla_losa.m")
 %load malla_losa
@@ -34,7 +30,7 @@ gdl  = [(1:3:ngdl)' (2:3:ngdl)' (3:3:ngdl)']; % nodos vs grados de libertad
 figure; 
 hold on;
 for e = 1:nef
-   line(xnod(LaG(e,[1:4 1]),X), xnod(LaG(e,[1:4 1]),Y));
+   line(xnod(LaG(e,[1:8 1]),X), xnod(LaG(e,[1:8 1]),Y));
    
    % Calculo la posicion del centro de gravedad del elemento finito
    cgx = mean(xnod(LaG(e,:), X));
@@ -53,41 +49,40 @@ title('Malla de una losa con EFs QL9');
 % programa "codigo/2D/deduccion_funciones_forma/FF_lagrangianos_Q9.m"
 
 %% N son las funciones de forma del elemento lagrangiano de 9 nodos
-Nforma = @(xi,eta)[ ((eta - 1)*(xi - 1))/4    % N1
-                   -((eta - 1)*(xi + 1))/4    % N2
-                    ((eta + 1)*(xi + 1))/4    % N3
-                   -((eta + 1)*(xi - 1))/4 ]; % N4
-               
-Nforma6 = @(xi,eta)[ ((eta - 1)*(xi - 1))/4    % N1
-                   -((eta - 1)*(xi + 1))/4     % N2
-                    ((eta + 1)*(xi + 1))/4     % N3
-                   -((eta + 1)*(xi - 1))/4     % N4
-                  ((xi^2 - 1)*(eta - 1))/2     % N2
-                 -((eta^2 - 1)*(xi + 1))/2     % N4
-                 -((xi^2 - 1)*(eta + 1))/2     % N6
-                  ((eta^2 - 1)*(xi - 1))/2 ];  % N8
-
-% derivadas de las funciones de forma con respecto a xi
-dN_dxi = @(xi,eta) [  eta/4 - 1/4    % dN1_dxi
-                      1/4 - eta/4    %dN2_dxi
-                      eta/4 + 1/4    %dN3_dxi
-                    - eta/4 - 1/4    %dN4_dxi
-                      eta*xi - xi    %dN2_dxi
-                    1/2 - eta^2/2    %dN4_dxi
-                    -xi*(eta + 1)    % dN6_dxi
-                    eta^2/2 - 1/2];  % dN8_dxi
-
-
+Nforma = @(xi,eta) [ ...
+        (eta*xi*(eta - 1)*(xi - 1))/4               % N1
+        -(eta*(xi^2 - 1)*(eta - 1))/2               % N2
+        (eta*xi*(eta - 1)*(xi + 1))/4               % N3
+        -(xi*(eta^2 - 1)*(xi + 1))/2                % N4
+        (eta*xi*(eta + 1)*(xi + 1))/4               % N5
+        -(eta*(xi^2 - 1)*(eta + 1))/2               % N6
+        (eta*xi*(eta + 1)*(xi - 1))/4               % N7
+        -(xi*(eta^2 - 1)*(xi - 1))/2                % N8
+        (eta^2 - 1)*(xi^2 - 1)          ];          % N9
+ 
+%% Derivadas de N con respecto a xi
+dN_dxi = @(xi,eta) [ ...
+        (eta*(2*xi - 1)*(eta - 1))/4                % dN1_dxi
+        -eta*xi*(eta - 1)                           % dN2_dxi
+        (eta*(2*xi + 1)*(eta - 1))/4                % dN3_dxi
+        -((eta^2 - 1)*(2*xi + 1))/2                 % dN4_dxi
+        (eta*(2*xi + 1)*(eta + 1))/4                % dN5_dxi
+        -eta*xi*(eta + 1)                           % dN6_dxi
+        (eta*(2*xi - 1)*(eta + 1))/4                % dN7_dxi
+        -((eta^2 - 1)*(2*xi - 1))/2                 % dN8_dxi
+        2*xi*(eta^2 - 1)                ];          % dN9_dxi
+ 
 %% Derivadas de N con respecto a eta
-dN_deta =  @(xi,eta) [  xi/4 - 1/4   % dN1_deta
-                       -xi/4 - 1/4   % dN2_deta
-                        xi/4 + 1/4   % dN3_deta
-                        1/4 - xi/4   % dN4_deta
-                      xi^2/2 - 1/2   % dN2_deta
-                        -eta*(xi + 1)% dN4_deta
-                        1/2 - xi^2/2 % dN6_deta
-                        eta*(xi - 1) ];% dN8_deta
-
+dN_deta = @(xi,eta) [ ...
+        (xi*(2*eta - 1)*(xi - 1))/4                 % dN1_deta
+        -((2*eta - 1)*(xi^2 - 1))/2                 % dN2_deta
+        (xi*(2*eta - 1)*(xi + 1))/4                 % dN3_deta
+        -eta*xi*(xi + 1)                            % dN4_deta
+        (xi*(2*eta + 1)*(xi + 1))/4                 % dN5_deta
+        -((2*eta + 1)*(xi^2 - 1))/2                 % dN6_deta
+        (xi*(2*eta + 1)*(xi - 1))/4                 % dN7_deta
+        -eta*xi*(xi - 1)                            % dN8_deta
+        2*eta*(xi^2 - 1)                ];          % dN9_deta
 
 %% parametros de la cuadratura de Gauss-Legendre (INTEGRACION SELECTIVA)
 % se asumira aqui el mismo orden de la cuadratura tanto en la direccion de
@@ -100,8 +95,8 @@ n_gl_s = 3; % orden de la cuadratura de GL para la integracion de Ks
 %}
 
 % se utilizara integracion SELECTIVA
-n_gl_b = 2; % orden de la cuadratura de GL para la integracion de Kb
-n_gl_s = 1; % orden de la cuadratura de GL para la integracion de Ks
+n_gl_b = 3; % orden de la cuadratura de GL para la integracion de Kb
+n_gl_s = 2; % orden de la cuadratura de GL para la integracion de Ks
 
 % se utilizara integracion REDUCIDA
 %{
@@ -126,12 +121,6 @@ Dsg = t*Ds;        % matriz constitutiva generalizada de cortante
 
 %% se reserva la memoria RAM de diferentes variables
 K   = sparse(ngdl,ngdl); % matriz de rigidez global como RALA (sparse)
-inv_Ksee = cell(nef, 4, 4);
-Kbeer    = cell(nef, 4, 24);
-
-inv_Kbee = cell(nef, 4, 4);
-Kseer     = cell(nef, 4, 24);
-
 f   = zeros(ngdl,1);     % vector de fuerzas nodales equivalentes global
 idx = cell(nef, 1);      % grados de libertad de cada elemento finito
 
@@ -146,28 +135,29 @@ Bs = cell(nef,n_gl_s,n_gl_s); % matrices de deformacion generalizada de cortante
 for e = 1:nef      % ciclo sobre todos los elementos finitos
    xe = xnod(LaG(e,:),X);   
    ye = xnod(LaG(e,:),Y);    
-   fe  = zeros(3*4,1); 
+    
    %% se calcula la matriz de rigidez de flexion Kb del elemento e 
-   Kbe = zeros(3*8);
+   Kbe = zeros(3*nnoef);
    det_Je_b = zeros(n_gl_b); % Jacobianos con n_gl_b puntos de integracion   
    for p = 1:n_gl_b
       for q = 1:n_gl_b
          xi_gl  = x_gl_b(p);
          eta_gl = x_gl_b(q);
          [Bb{e,p,q}, det_Je_b(p,q)] = Bb_RM(xi_gl, eta_gl, xe, ye, dN_dxi, dN_deta);
+
          % se arma la matriz de rigidez del elemento e
          Kbe = Kbe + Bb{e,p,q}'*Dbg*Bb{e,p,q}*det_Je_b(p,q)*w_gl_b(p)*w_gl_b(q);
       end
    end
    
    %% se calcula la matrix Ks
-   Kse = zeros(3*8);   
+   Kse = zeros(3*nnoef);   
    det_Je_s = zeros(n_gl_s); % Jacobianos con n_gl_s puntos de integracion
    for p = 1:n_gl_s
       for q = 1:n_gl_s
          xi_gl  = x_gl_s(p);        
          eta_gl = x_gl_s(q);
-         [Bs{e,p,q}, det_Je_s(p,q)] = Bs_RM(xi_gl, eta_gl, xe, ye, Nforma6, dN_dxi, dN_deta);   
+         [Bs{e,p,q}, det_Je_s(p,q)] = Bs_RM(xi_gl, eta_gl, xe, ye, Nforma, dN_dxi, dN_deta);   
 
          % se arma la matriz de rigidez del elemento e
          Kse = Kse + Bs{e,p,q}'*Dsg*Bs{e,p,q}*det_Je_s(p,q)*w_gl_s(p)*w_gl_s(q);         
@@ -189,40 +179,34 @@ for e = 1:nef      % ciclo sobre todos los elementos finitos
          for i = 1:nnoef            
             NN{e,p,q}(:,3*i-2:3*i) = diag([N(i) N(i) N(i)]);
          end
+   
          % matriz requerida para calcular el vector de fuerzas nodales 
          % equivalentes (se utiliza la integracion completa)
-         %% vector de fuerzas nodales equivalentes        
-         if (xe(1) >= 0 && xe(2) <= 2) && ...
-           (ye(2) >= 0 && ye(3) <= 4)
-            fe = fe + NN{e,p,q}'*[qdistr 0 0]'*det_Je_b(p,q)*w_gl_b(p)*w_gl_b(q);
-         end                                                                                       % REVISAR !!!!!!!!!!!!!!!!   
+         Mbe = Mbe + NN{e,p,q}'*NN{e,p,q}*det_Je_b(p,q)*w_gl_b(p)*w_gl_b(q);                                              % REVISAR !!!!!!!!!!!!!!!!   
       end
    end  
-   % se condensan los GDL jerárquicos
-    Kberr = Kbe(r_,r_); 
-    Kbeer{e}= Kbe(e_,r_);
-    Kbere = Kbe(r_,e_);
-    inv_Kbee{e} = (Kbe(e_,e_))^(-1);
-    
-    Kebec = Kberr - Kbere * inv_Kbee{e} * Kbeer{e};
-
-    
-    % se condensan los GDL jerárquicos
-    Kserr = Kse(r_,r_); 
-    Kseer{e}= Kse(e_,r_);
-    Ksere = Kse(r_,e_);
-    inv_Ksee{e} = (Kse(e_,e_))^(-1);
-    
-    Kesec = Kserr - Ksere * inv_Ksee{e} * Kseer{e};
-
+   
+   %% se calcula el vector de fuerzas nodales equivalentes del elemento e      
+   xa = xnod(LaG(e,1),X);   ya = xnod(LaG(e,1),Y);
+   xb = xnod(LaG(e,5),X);   yb = xnod(LaG(e,5),Y);
+   %if (xa >= 0.9999 && xb <= 1.601) && (ya >= 0.9999 && yb <= 2.001)
+   %   ffe = zeros(nnoef, 3); ffe(:,ww) = q;
+   %   ffe = reshape(ffe', 3*nnoef,1);                                                                                             % REVISAR !!!!!!!!!!!!!
+   %else
+   %   ffe = zeros(3*nnoef,1);
+   %end  
+    ffe = zeros(nnoef, 3);
+    ffe(:,ww) = q;
+    ffe = reshape(ffe', 3*nnoef,1);       
    
    %% se asocian los grados de libertad del elemento locales a los globales
    idx{e} = [ gdl(LaG(e,1),:)  gdl(LaG(e,2),:)  gdl(LaG(e,3),:)  ...
-              gdl(LaG(e,4),:)  ];
+              gdl(LaG(e,4),:)  gdl(LaG(e,5),:)  gdl(LaG(e,6),:) ...
+              gdl(LaG(e,7),:)  gdl(LaG(e,8),:)  gdl(LaG(e,9),:) ];
 
    %% se procede al ensamblaje
-   K(idx{e},idx{e}) = K(idx{e},idx{e}) + Kebec + Kesec;
-   f(idx{e})        = f(idx{e}) + fe;
+   K(idx{e},idx{e}) = K(idx{e},idx{e}) + Kbe + Kse;
+   f(idx{e})        = f(idx{e}) + ffe;
 end
 
 %% Muestro la configuracion de la matriz K (K es rala)
@@ -233,15 +217,15 @@ title('Los puntos representan los elementos diferentes de cero')
 %% grados de libertad del desplazamiento conocidos y desconocidos
 
 % determino los grados de libertad correspondientes a los bordes
-lado_x0 = find(abs(xnod(:,X) - 0) < 1e-4);     
-lado_y0 = find(abs(xnod(:,Y) - 0) < 1e-4);
-lado_x2 = find(abs(xnod(:,X) - 2) < 1e-4);     
-lado_y4 = find(abs(xnod(:,Y) - 4) < 1e-4);
+%lado_x0 = find(abs(xnod(:,X) - 0) < 1e-4);     
+%lado_y0 = find(abs(xnod(:,Y) - 0) < 1e-4);
+%lado_x2 = find(abs(xnod(:,X) - 2) < 1e-4);     
+%lado_y4 = find(abs(xnod(:,Y) - 4) < 1e-4);
 
-c = [ gdl(lado_x0,ww); gdl(lado_x0,ty); 
-      gdl(lado_x2,ww); gdl(lado_x2,ty);
-      gdl(lado_y0,ww); gdl(lado_y0,tx);
-      gdl(lado_y4,ww); gdl(lado_y4,tx) ];
+%c = [ gdl(lado_x0,ww); gdl(lado_x0,ty); 
+%      gdl(lado_x2,ww); gdl(lado_x2,ty);
+%      gdl(lado_y0,ww); gdl(lado_y0,tx);
+%      gdl(lado_y4,ww); gdl(lado_y4,tx) ];
 
 d = setdiff(1:ngdl,c)';
 
@@ -292,17 +276,17 @@ end
 %}
 
 %% Se dibuja el plano medio de la malla de elementos finitos y las deformaciones de esta
-escala = 10;            % factor de escalamiento de la deformada
+escala = 5000;            % factor de escalamiento de la deformada
 xdef   = escala*vect_mov; % posicion de la deformada
 figure; 
 hold on; 
 grid on;
 colorbar
 for e = 1:nef
-   fill3(xnod(LaG(e,[1:4 1]),X), ...
-         xnod(LaG(e,[1:4 1]),Y), ...
-         xdef(LaG(e,[1:4 1]),ww),...
-         xdef(LaG(e,[1:4 1]),ww)); %deformada
+   fill3(xnod(LaG(e,[1:8 1]),X), ...
+         xnod(LaG(e,[1:8 1]),Y), ...
+         xdef(LaG(e,[1:8 1]),ww),...
+         xdef(LaG(e,[1:8 1]),ww)); %deformada
 end
 daspect([1 1 1]); % similar a "axis equal", pero en 3D
 axis tight
@@ -312,19 +296,19 @@ colormap jet
 view(3);
 
 %% Se dibuja de la malla de elementos finitos y las deformaciones de esta
-%figure; 
-%hold on; 
-%grid on;
-%colorbar
-%for e = 1:nef
-%   dibujar_EF_Q89_RM(xnod(LaG(e,:),X), xnod(LaG(e,:),Y), ...
-%      Nforma, a(idx{e}), t, escala, escala);
-%end
-%daspect([1 1 1]); % similar a "axis equal", pero en 3D
-%axis tight
-%title(sprintf('Deformada escalada %d veces', escala), 'FontSize', 20);
-%colormap jet
-%view(3);
+figure; 
+hold on; 
+grid on;
+colorbar
+for e = 1:nef
+   dibujar_EF_Q89_RM(xnod(LaG(e,:),X), xnod(LaG(e,:),Y), ...
+      Nforma, a(idx{e}), t, escala, escala);
+end
+daspect([1 1 1]); % similar a "axis equal", pero en 3D
+axis tight
+title(sprintf('Deformada escalada %d veces', escala), 'FontSize', 20);
+colormap jet
+view(3);
 
 %% En los puntos de integracion de Gauss-Legendre calcular:
 %% El vector de momentos flectores y torsores (2x2)
@@ -388,13 +372,18 @@ Mxy = zeros(nno,1);
 
 % matriz de extrapolacion de esfuerzos para un elemento lagrangiano de 9
 % nodos
-A = [[  3^(1/2)/2 + 1,            -1/2,            -1/2,   1 - 3^(1/2)/2];
-    [            -1/2,   1 - 3^(1/2)/2,   3^(1/2)/2 + 1,            -1/2];
-    [   1 - 3^(1/2)/2,            -1/2,            -1/2,   3^(1/2)/2 + 1];
-    [            -1/2,   3^(1/2)/2 + 1,   1 - 3^(1/2)/2,            -1/2]];
+A = [ ... 
+   3^(1/2)/2 + 1,            -1/2,            -1/2,   1 - 3^(1/2)/2
+ 3^(1/2)/4 + 1/4, 1/4 - 3^(1/2)/4, 3^(1/2)/4 + 1/4, 1/4 - 3^(1/2)/4
+            -1/2,   1 - 3^(1/2)/2,   3^(1/2)/2 + 1,            -1/2
+ 1/4 - 3^(1/2)/4, 1/4 - 3^(1/2)/4, 3^(1/2)/4 + 1/4, 3^(1/2)/4 + 1/4
+   1 - 3^(1/2)/2,            -1/2,            -1/2,   3^(1/2)/2 + 1
+ 1/4 - 3^(1/2)/4, 3^(1/2)/4 + 1/4, 1/4 - 3^(1/2)/4, 3^(1/2)/4 + 1/4
+            -1/2,   3^(1/2)/2 + 1,   1 - 3^(1/2)/2,            -1/2
+ 3^(1/2)/4 + 1/4, 3^(1/2)/4 + 1/4, 1/4 - 3^(1/2)/4, 1/4 - 3^(1/2)/4
+             1/4,             1/4,             1/4,             1/4 ];
 
 for e = 1:nef
-
    Mx(LaG(e,:),:)  = Mx(LaG(e,:),:)  + A * [ sigmag_b{e,1,1}(1)
                                              sigmag_b{e,1,2}(1)
                                              sigmag_b{e,2,1}(1)
@@ -477,7 +466,7 @@ function plot_M_or_Q(nef, xnod, LaG, variable, texto, angulos)
     colorbar;
     % Por simplicidad no se graficaran los resultados asociados al nodo 9
     for e = 1:nef  
-       fill(xnod(LaG(e,1:4),X), xnod(LaG(e,1:4),Y), variable(LaG(e,1:4)));
+       fill(xnod(LaG(e,1:8),X), xnod(LaG(e,1:8),Y), variable(LaG(e,1:8)));
     end
     axis equal tight
     colormap jet

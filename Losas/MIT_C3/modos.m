@@ -11,7 +11,7 @@ Te = 2*pi./Omega;             % seg - periodo de vibracion
 Phi = Phi(:,I); % ordena los modos segun el orden de las frecuencias
 Phi = Phi./repmat(sqrt(diag(Phi'*M(d,d)*Phi)'),size(Phi,1),1); % normaliza los modos
 
-modo=1;
+modo=6;
 %% Visualización de modos de vibración
 def = zeros(ngdl,1);
 def(d,1) = Phi(:,modo);
