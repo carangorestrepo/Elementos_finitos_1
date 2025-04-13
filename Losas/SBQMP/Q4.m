@@ -1,159 +1,170 @@
 clear all
 close
 clc
+%% constantes que ayudarÃ¡n en la lectura del cÃ³digo
+X = 1; Y = 2; Z = 3; % un par de constantes que ayudaran en la 
+ww= 1; tx= 2; ty= 3; % lectura del codigo
 
-%% === CONSTANTES PARA LECTURA DEL CÓDIGO ===
-X = 1; Y = 2; Z = 3;         % Coordenadas espaciales (índices para x, y, z)
-ww = 1; tx = 2; ty = 3;     % Grados de libertad por nodo: desplazamiento vertical y rotaciones
+%%
+E=4700*sqrt(28)*1000;
 
-%% === PARÁMETROS DE LA LOSA ===
-E = 4700 * sqrt(28) * 1000; % Módulo de elasticidad del concreto (Pa)
-nu = 0.25;                  % Coeficiente de Poisson
-h = 0.1;                    % Espesor de la losa (m)
-rho = 2700;             % Densidad (kg/m³)
-k = 5/6;                % Factor de corrección por cortante
-G = E / (2*(1 + nu));   % Módulo de cortante (MPa)
+nu=0.25;
+h=4*0.1;
+q  = -(4.6*1.2+1.8*1.6+0.2*24);         % [kN/m^2] carga
+escala = 100; % factor de escalamiento de la deformada
 
-% Carga distribuida (kN/m^2). Combinación de cargas por área:
-q = -(4.6*1.2 + 1.8*1.6 + 0.2*24); 
+Lx=4;
+Ly=4;
+deltax=0.1;
+deltay=0.1;
+%%123 empotrada 12%apoyado 0 libre  
+EExi=123;
+EExf=123;
+EEyi=123;
+EEyf=123;
+kWinkler=500;
+n=2;
+k = 5/6;        % Factor de corrección por cortante
+G = E/(2*(1+nu)); % ¡Crítico! Módulo de cortante
+rho=2.4028;
 
-escala = 100;              % Escala para visualización de deformaciones
+xqi=0;
+xqf=Lx;
+yqi=0;
+yqf=Ly;
 
-%% === DIMENSIONES DE LA LOSA Y MALLA ===
-Lx = 1.5;                   % Longitud en x (m)
-Ly = 1;                     % Longitud en y (m)
-deltax = 0.05;              % Tamaño de elemento en x (m)
-deltay = 0.05;              % Tamaño de elemento en y (m)
 
-%% === CONDICIONES DE BORDE ===
-% Codificación: 123 = empotrado, 12 = simplemente apoyado, 0 = libre
-EExi = 0;   % Borde izquierdo (x = 0)
-EExf = 12;  % Borde derecho (x = Lx)
-EEyi = 12;  % Borde inferior (y = 0)
-EEyf = 12;  % Borde superior (y = Ly)
+Nx=round(Lx/deltax,0);
+dv=round(Nx/n,0);
+Nx=dv*n+1;%% numero de nudos X
 
-%% === PARÁMETROS AUXILIARES ===
-n = 2;       % Subdivisión para compatibilidad posterior
-xqi = 0; xqf = Lx;          % Rango de aplicación de carga (no usado aquí)
-yqi = 0; yqf = Ly;
+Ny=round(Ly/deltay,0);
+dv=round(Ny/n,0);
+Ny=dv*n+1;%% numero de nudos Y
 
-%% === GENERACIÓN DE MALLA ===
-% Ajuste del número de nodos para conectividad múltiplo de n
-Nx = round(Lx/deltax, 0);
-dv = round(Nx/n, 0);
-Nx = dv*n + 1;
+x=linspace(0,Lx,Nx);
+y=linspace(0,Ly,Ny);
+[Xe,Ye]=meshgrid(x,y);%% grilla coordenadas nudos elemento
 
-Ny = round(Ly/deltay, 0);
-dv = round(Ny/n, 0);
-Ny = dv*n + 1;
+plot(Xe,Ye, '*r'),hold on%% grafica nodos elemento finito
+Bx = reshape(Xe,[],1);
+By = reshape(Ye,[],1);
+xnod=[Bx,By];
+%% nudos elemento
+nnoi =(1:Ny*Nx)';% numero de nodos
+nno  = size(xnod,1); % numero de nodos (numero de filas de xnod)
+%text(Bx,By,num2str(nnoi)),hold on
+%% nugos grilla elemento
+Nudosg = reshape(nnoi,[Ny,Nx]);
 
-x = linspace(0, Lx, Nx);     % Coordenadas nodales en x
-y = linspace(0, Ly, Ny);     % Coordenadas nodales en y
-[Xe, Ye] = meshgrid(x, y);   % Malla regular de nodos
-
-plot(Xe, Ye, '*r'), hold on  % Visualización de nodos
-
-% Vectorización de coordenadas nodales
-Bx = reshape(Xe, [], 1);
-By = reshape(Ye, [], 1);
-xnod = [Bx, By];             % Matriz de coordenadas nodales
-
-nnoi = (1:Ny*Nx)';           % Lista de nodos
-Nudosg = reshape(nnoi, [Ny, Nx]); % Matriz nodal ordenada por filas/columnas
-
-recorridox = 2:Nx;           % Recorrido para generar elementos en x
-recorridoy = 2:Ny;           % Recorrido para generar elementos en y
-Nelex = length(recorridox); % Número de elementos en x
-Neley = length(recorridoy); % Número de elementos en y
-nef = Nelex * Neley;        % Número total de elementos finitos
-
-% Inicialización de matrices de conectividad
-LaG = zeros(nef, 4);
-LaGc = cell(nef, 1);
-xeg = cell(nef, 1);
-yeg = cell(nef, 1);
-xe = zeros(nef, 4);
-ye = zeros(nef, 4);
-cg = zeros(nef, 2);          % Centroide de cada elemento
-
-e = 1;
-for ey = 1:Neley
-    for ex = 1:Nelex
-        % Nodos del elemento
-        LaGc{e} = Nudosg((recorridoy(ey)-1):recorridoy(ey), (recorridox(ex)-1):recorridox(ex));
-        
-        % Coordenadas del elemento
-        xeg{e} = Xe((recorridoy(ey)-1):recorridoy(ey), (recorridox(ex)-1):recorridox(ex));
-        yeg{e} = Ye((recorridoy(ey)-1):recorridoy(ey), (recorridox(ex)-1):recorridox(ex));
-
-        % Asignación nodal al elemento en orden antihorario
-        LaG(e,:) = [LaGc{e}(1,1), LaGc{e}(1,2), LaGc{e}(2,2), LaGc{e}(2,1)];
-        xe(e,:) = [xeg{e}(1,1), xeg{e}(1,2), xeg{e}(2,2), xeg{e}(2,1)];
-        ye(e,:) = [yeg{e}(1,1), yeg{e}(1,2), yeg{e}(2,2), yeg{e}(2,1)];
-
-        % Centro de gravedad del EF
-        cg(e,:) = [mean(xe(e,:)), mean(ye(e,:))];
-
-        % Visualización y numeración del elemento
-        text(cg(e,X), cg(e,Y), num2str(e), 'Color', 'b');
-        plot(xe(e,[1:4,1]), ye(e,[1:4,1]))
-
-        e = e + 1;
+recorridox=2:1:Nx;
+Nelex=size(recorridox,2);
+recorridoy=2:1:Ny;
+Neley=size(recorridoy,2);
+nef=Nelex*Neley;% numero de EFs (numero de filas de LaG)
+LaG=zeros(nef,4);
+e=1;
+LaGc = cell(nef,1); 
+xeg = cell(nef,1); 
+yeg = cell(nef,1); 
+xe =zeros(nef,4);
+ye =zeros(nef,4);
+cg = zeros(nef,2); % almacena el centro de gravedad de los EFs
+for ey=1:(Neley)
+    for ex=1:(Nelex)
+       %%nudos por elemento
+       LaGc{e}=Nudosg((recorridoy(ey)-1):recorridoy(ey),(recorridox(ex)-1):recorridox(ex)); 
+       %coordenadas elemento
+       xeg{e}=Xe((recorridoy(ey)-1):recorridoy(ey),(recorridox(ex)-1):recorridox(ex)); 
+       yeg{e}=Ye((recorridoy(ey)-1):recorridoy(ey),(recorridox(ex)-1):recorridox(ex)); 
+       % se determinan las coordenadas de los nodos el EF e
+       LaG(e,:)=[LaGc{e}(1,1),LaGc{e}(1,2),LaGc{e}(2,2),LaGc{e}(2,1)];
+       xe(e,:)=[xeg{e}(1,1),xeg{e}(1,2),xeg{e}(2,2),xeg{e}(2,1)];
+       ye(e,:)=[yeg{e}(1,1),yeg{e}(1,2),yeg{e}(2,2),yeg{e}(2,1)];
+       % se calcula la posiciÃ³n del centro de gravedad del EF e
+       cg(e,:) = [mean(xe(e,:)),mean(ye(e,:))];
+       % se escribe el numero del EF e
+       text(cg(e,X), cg(e,Y), num2str(e), 'Color', 'b');
+       plot(xe(e,[1:4,1]),ye(e,[1:4,1]))
+       e=e+1;
     end
 end
-
 axis equal tight
 title('Malla de elementos finitos');
+nef  = size(LaG,1);  % numero de EFs (numero de filas de LaG)
 
-%% === GRADOS DE LIBERTAD POR NODO ===
-nno = size(xnod,1);          % Número total de nodos
-ngdl = 3 * nno;              % Total de grados de libertad (3 por nodo)
-gdl = [(1:3:ngdl)' (2:3:ngdl)' (3:3:ngdl)'];
 
-%% === DETECCIÓN DE BORDES ===
-lado_x0 = find(xnod(:,X) == 0);
+%% grados de libertad del desplazamiento conocidos y desconocidos
+% determino los grados de libertad correspondientes a los bordes
+lado_x0 = find(xnod(:,X) == 0);     
 lado_y0 = find(xnod(:,Y) == 0);
-lado_xLx = find(xnod(:,X) == Lx);
+lado_xLx = find(xnod(:,X) == Lx);     
 lado_yLy = find(xnod(:,Y) == Ly);
 
-%% === ASIGNACIÓN DE CONDICIONES DE BORDE ===
-if EExi == 123
-    cxi = [gdl(lado_x0,ww); gdl(lado_x0,ty); gdl(lado_x0,tx)];
-elseif EExi == 12
-    cxi = [gdl(lado_x0,ww); gdl(lado_x0,ty)];
-elseif EExi == 0
-    cxi = [];
+% Definimos la geometria de la losa
+%losa
+% ya tenemos en la memoria las variables
+% xnod - posicion (x,y) de los nodos
+% LaG  - definicion de elementos finitos con respecto a nodos
+nno  = size(xnod,1); % numero de nodos (numero de filas de xnod)
+ngdl = 3*nno;        % numero de grados de libertad (tres por nodo)
+gdl  = [(1:3:ngdl)' (2:3:ngdl)' (3:3:ngdl)']; % nodos vs grados de libertad
+
+%c = [ gdl(lado_x0,ww); gdl(lado_x0,ty);gdl(lado_x0,tx); gdl(lado_y0,ww); gdl(lado_y0,tx);gdl(lado_y0,ty);gdl(lado_xLx,ww);  gdl(lado_xLx,ty);gdl(lado_xLx,tx);gdl(lado_yLy,ww); gdl(lado_yLy,tx); gdl(lado_yLy,ty)];
+  
+
+if EExi==123
+    cxi = [gdl(lado_x0,ww);
+           gdl(lado_x0,ty);
+           gdl(lado_x0,tx)]; 
+elseif EExi==12
+    cxi = [gdl(lado_x0,ww);
+           gdl(lado_x0,ty)];
+elseif EExi==0  
+    cxi=NaN;
 end
 
-if EExf == 123
-    cxf = [gdl(lado_xLx,ww); gdl(lado_xLx,ty); gdl(lado_xLx,tx)];
-elseif EExf == 12
-    cxf = [gdl(lado_xLx,ww); gdl(lado_xLx,ty)];
-elseif EExf == 0
-    cxf = [];
+if EExf==123
+    cxf = [gdl(lado_xLx,ww);
+           gdl(lado_xLx,ty);
+           gdl(lado_xLx,tx)]; 
+elseif EExf==12   
+    cxf = [gdl(lado_xLx,ww);
+           gdl(lado_xLx,ty)];
+elseif EExf==0 
+    cxf=NaN;
 end
 
-if EEyi == 123
-    cyi = [gdl(lado_y0,ww); gdl(lado_y0,ty); gdl(lado_y0,tx)];
-elseif EEyi == 12
-    cyi = [gdl(lado_y0,ww); gdl(lado_y0,ty)];
-elseif EEyi == 0
-    cyi = [];
+if EEyi==123
+    cyi = [gdl(lado_y0,ww);
+           gdl(lado_y0,ty);
+           gdl(lado_y0,tx)]; 
+elseif EEyi==12 
+    cyi = [gdl(lado_y0,ww);
+           gdl(lado_y0,ty)];
+elseif EEyi==0    
+    cyi=NaN;
 end
-
-if EEyf == 123
-    cyf = [gdl(lado_yLy,ww); gdl(lado_yLy,ty); gdl(lado_yLy,tx)];
-elseif EEyf == 12
-    cyf = [gdl(lado_yLy,ww); gdl(lado_yLy,ty)];
-elseif EEyf == 0
-    cyf = [];
+if EEyf==123
+    cyf = [gdl(lado_yLy,ww);
+           gdl(lado_yLy,ty);
+           gdl(lado_yLy,tx)]; 
+elseif EEyf==12 
+    cyf = [gdl(lado_yLy,ww);
+           gdl(lado_yLy,ty)];
+    
+elseif EEyf==0  
+    cyf=NaN;   
 end
+c = [cxi;
+     cxf;
+     cyi;
+     cyf];
+TF = isnan(c);
+f=find(TF==0);
+c=c(f,1);
+d = setdiff(1:ngdl,c)';
 
-% Unión de grados de libertad restringidos y libres
-c = [cxi; cxf; cyi; cyf];
-c = c(~isnan(c));              % Elimina posibles NaN si existen
-
-d = setdiff(1:ngdl, c)';       % Grados de libertad libres
 
 
 
