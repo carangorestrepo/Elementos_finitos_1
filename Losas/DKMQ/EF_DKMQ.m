@@ -127,7 +127,15 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
     x32 = xe(3) - xe(2);         y32 = ye(3) - ye(2);
     x43 = xe(4) - xe(3);         y43 = ye(4) - ye(3);    
     x14 = xe(1) - xe(4);         y14 = ye(1) - ye(4);
-    xji = [ x21 x32 x43 x14 ];   yji = [ y21 y32 y43 y14 ];   
+    xji = [ x21 x32 x43 x14 ];   yji = [ y21 y32 y43 y14 ];  
+    x1=xe(1);
+    x2=xe(2);
+    x3=xe(3);
+    x4=xe(4);
+    y1=ye(1);
+    y2=ye(2);
+    y3=ye(3);
+    y4=ye(4);
     
     Lk = hypot(xji, yji);      Ck =xji./Lk;      Sk = yji./Lk; %% figure 4
     C5=Ck(1);
@@ -254,9 +262,12 @@ for e = 1:nef               % ciclo sobre todos los elementos finitos
                  [ -3/(2*L8*(phi8 + 1)), -(3*x14)/(4*L8*(phi8 + 1)), -(3*y14)/(4*L8*(phi8 + 1)),                    0,                          0,                          0,                    0,                          0,                          0,  3/(2*L8*(phi8 + 1)), -(3*x14)/(4*L8*(phi8 + 1)), -(3*y14)/(4*L8*(phi8 + 1))]];
 
             %% Se calcula la matriz de deformacion por flexion Bb (eq. 41)
+
             Bb{e,pp,qq} = Bb_beta + Bb_dbeta*An;
             % Ecuacion 43
+            
             Bs{e,pp,qq} = Bs_dbeta*An;
+            
             
             %% se arma la matriz de rigidez del elemento e por flexion (eq. 45)
             Kbe = Kbe + Bb{e,pp,qq}'*Hb*Bb{e,pp,qq}*det_Je(pp,qq)*w_gl(pp)*w_gl(qq);

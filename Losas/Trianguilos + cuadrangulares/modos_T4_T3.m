@@ -11,7 +11,7 @@ Te = 2*pi./Omega;             % seg - periodo de vibracion
 Phi = Phi(:,I); % ordena los modos segun el orden de las frecuencias
 Phi = Phi./repmat(sqrt(diag(Phi'*M(d,d)*Phi)'),size(Phi,1),1); % normaliza los modos
 
-modo=1;
+modo=6;
 %% Visualización de modos de vibración
 
 def = zeros(ngdl,1);
@@ -20,11 +20,18 @@ vect_mov = reshape(def,3,nno)';
 
 figure;
 hold on;
-for e = 1:nef
-   fill3(xnod(LaG(e,[1 2 3 4 1]),X), ...
-         xnod(LaG(e,[1 2 3 4 1]),Y), ...
-         vect_mov(LaG(e,[1 2 3 4 1]),ww), ...
-         vect_mov(LaG(e,[1 2 3 4 1]),ww));
+for e = 1:nef    
+    if Numero_de_nodos_elem(e)==3 %% elementos triangulares
+       fill3(xnod(LaG(e,[1 2 3 1]),X), ...
+             xnod(LaG(e,[1 2 3 1]),Y), ...
+             vect_mov(LaG(e,[1 2 3 1]),ww), ...
+             vect_mov(LaG(e,[1 2 3 1]),ww));
+   elseif Numero_de_nodos_elem(e)==4 %  elemetos cudrangulares 
+      fill3(xnod(LaG(e,[1 2 3 4 1]),X), ...
+            xnod(LaG(e,[1 2 3 4 1]),Y), ...
+            vect_mov(LaG(e,[1 2 3 4 1]),ww), ...
+           vect_mov(LaG(e,[1 2 3 4 1]),ww));
+   end
 end
 nombre=double('modo');
 nombre2=double('W (rad/sec)=');

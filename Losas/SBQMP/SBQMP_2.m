@@ -5,13 +5,7 @@
 X = 1; Y = 2; Z = 3;   % Coordenadas
 ww = 1; tx = 2; ty = 3; % Grados de libertad por nodo
 
-%% Definición de malla (ejemplo cuadrilátero distorsionado)
-%xnod = [0, 0;   % Nodo 1
-%        2, 0;   % Nodo 2
-%        3, 2;   % Nodo 3
-%        1, 3];  % Nodo 4
-%LaG = [1 2 3 4]; % Definición del elemento
-
+%% Definimos la geometria de la losa
 nno = size(xnod,1);  % Número de nodos
 ngdl = 3*nno;        % Grados de libertad totales
 gdl = [(1:3:ngdl)' (2:3:ngdl)' (3:3:ngdl)']; % Asignación de GDL
@@ -31,11 +25,14 @@ text(xnod(:,X), xnod(:,Y), num2str((1:nno)'));
 title('Malla de elementos finitos');
 
 %% Matrices constitutivas
-D_b = (E*h^3)/(12*(1 - nu^2)) * [1, nu, 0; nu, 1, 0; 0, 0, (1 - nu)/2];
+Db = (E*h^3/(12*(1-nu^2)));   % plate rigidity eq 7
+H_b = Db * [ 1  nu 0          % matriz constitutiva de flexion generalizada
+            nu 1  0           % (Dbe en la nomenclatura del curso) 
+            0  0  (1-nu)/2 ]; 
 D_s = k * h * G * eye(2);
-D = blkdiag(D_b, D_s);
+D = blkdiag(H_b, D_s);
 %T = rho * diag([h, h^3/12, h^3/12]);
-T = rho * diag([h, 0, 0]);
+T  = rho * diag([h, 0, 0]);
 
 %% Funciones de forma y derivadas para cuadrilátero bilineal
 Nforma = @(xi,eta) [1/4*(1-xi)*(1-eta)        % N1
@@ -57,20 +54,18 @@ dN_deta = @(xi,eta) [-1/4*(1-xi)              % dN1_deta
 
 %% Matrices [P] y [Q]
 P = @(xi,eta) [...
-                1, -xi, -eta, -xi^2/2, -(xi^2*eta)/2 + eta^3/12, -eta^2/2, ...
-                -(xi*eta^2)/2 + xi^3/12, -xi*eta/2, xi/2, xi*eta/2, eta/2, xi*eta/2;
-                0, 1, 0, xi, xi*eta, 0, xi^2/4 + eta^2/2, eta/2, 1/2, eta/2, 0, -eta/2;
-                0, 0, 1, 0, eta^2/4 + xi^2/2, eta, xi*eta, xi/2, 0, -xi/2, 1/2, xi/2];
-
+                1,-xi, -eta,  -xi^2/2, -(xi^2*eta)/2 + eta^3/12, -eta^2/2,-(xi*eta^2)/2 + xi^3/12,-xi*eta/2, xi/2, xi*eta/2,eta/2, xi*eta/2;
+                0,1  , 0   ,       xi,                   xi*eta,        0,       xi^2/4 + eta^2/2,    eta/2,  1/2,    eta/2,    0, -eta/2;
+                0,0  , 1   ,        0,         eta^2/4 + xi^2/2,      eta,                 xi*eta,     xi/2,    0,    -xi/2,  1/2, xi/2];
 Q = @(xi,eta) [...
-                0,0,0,1,eta,0,xi/2,0,0,0,0,0;
-                0,0,0,0,eta/2,1,xi,0,0,0,0,0;
-                0,0,0,0,2*xi,0,2*eta,1,0,0,0,0;
-                0,0,0,0,0,0,0,0,1,eta,0,0;
-                0,0,0,0,0,0,0,0,0,0,1,xi];
+                0,0,0,1,eta  ,0 ,xi/2 ,0,0,  0,0,0;
+                0,0,0,0,eta/2,1 ,xi   ,0,0,  0,0,0;
+                0,0,0,0,2*xi ,0 ,2*eta,1,0,  0,0,0;
+                0,0,0,0,0    ,0 ,0    ,0,1,eta,0,0;
+                0,0,0,0,0    ,0 ,0    ,0,0,  0,1,xi];
 
 %% Integración numérica (Gauss 2x2)
-n_gl = 10;
+n_gl = 2;
 %[x_gl, w_gl] = gauss_points(n_gl);
 [x_gl, w_gl] = gausslegendre_quad(n_gl);
 
@@ -84,7 +79,10 @@ for e = 1:nef
 
     %% Construcción de la matriz C evaluando P en coordenadas naturales
     C = zeros(12,12);
-    natural_coords = [-1 -1; 1 -1; 1 1; -1 1]; % Coordenadas naturales de los nodos
+    natural_coords = [-1 -1;
+                       1 -1;
+                       1 1;
+                      -1 1]; % Coordenadas naturales de los nodos
     %for i = 1:4
         %C(3*(i-1)+1:3*i, :) = P(natural_coords(i,1), natural_coords(i,2));
     %    C(3*(i-1)+1:3*i, :) = P(xe(i,1), ye(i,1));
@@ -93,13 +91,11 @@ for e = 1:nef
         xi = natural_coords(i,1); yi =  natural_coords(i,2);
         %xi = xe(i); yi = ye(i);
         C(3*(i-1)+1:3*i, :) = [...
-            1  -xi -yi -xi^2/2 -(xi^2*yi)/2+yi^3/12 -yi^2/2 ...
-            -(xi*yi^2)/2+xi^3/12 -xi*yi/2 xi/2 xi*yi/2 yi/2 xi*yi/2;
-            0   1   0   xi    xi*yi    0   xi^2/4+yi^2/2  yi/2  1/2  yi/2  0  -yi/2;
-            0   0   1   0   yi^2/4+xi^2/2  yi   xi*yi  xi/2  0  -xi/2  1/2  xi/2];
+                                1,-xi, -yi,  -xi^2/2, -(xi^2*yi)/2 + yi^3/12, -yi^2/2,-(xi*yi^2)/2 + xi^3/12,-xi*yi/2, xi/2, xi*yi/2,yi/2, xi*yi/2;
+                                0,1  , 0  ,       xi,                  xi*yi,       0,       xi^2/4 + yi^2/2,    yi/2,  1/2,    yi/2,   0, -yi/2;
+                                0,0  , 1  ,        0,        yi^2/4 + xi^2/2,      yi,                 xi*yi,    xi/2,    0,   -xi/2, 1/2, xi/2];
     end
     invC = inv(C);
-
     K0 = zeros(12);
     M0 = zeros(12);
     det_Je = zeros(n_gl,n_gl); % almacenara los Jacobianos
@@ -127,9 +123,10 @@ for e = 1:nef
             %Bm = P_val * invC;
             %B = Q_val * invC; % Matriz deformación-desplazamiento
             %N = P_val * invC; % Funciones de forma de desplazamient
-
-            K0 = K0 +  invC'*Q_val' * D * Q_val *invC * det_Je(pp,qq) * w_gl(pp) * w_gl(qq);
-            M0 = M0 +  invC'*P_val' * T * P_val *invC * det_Je(pp,qq) * w_gl(pp) * w_gl(qq);
+            K0 = K0 +  Q_val' * D * Q_val  * det_Je(pp,qq) * w_gl(pp) * w_gl(qq);
+            M0 = M0 +  P_val' * T * P_val  * det_Je(pp,qq) * w_gl(pp) * w_gl(qq);
+            %K0 = K0 +  invC'*Q_val' * D * Q_val *invC * det_Je(pp,qq) * w_gl(pp) * w_gl(qq);
+            %M0 = M0 +  invC'*P_val' * T * P_val *invC * det_Je(pp,qq) * w_gl(pp) * w_gl(qq);
         end
     end
     %% se verifica que todos los determinantes sean positivos
@@ -137,6 +134,8 @@ for e = 1:nef
         error('Existen elementos con det(Je(xi,eta)) <= 0 %d.\n', e);
     end
     idx = [gdl(LaG(e,1),:) gdl(LaG(e,2),:) gdl(LaG(e,3),:) gdl(LaG(e,4),:)];
-    K(idx,idx) = K(idx,idx) +  K0 ;
-    M(idx,idx) = M(idx,idx) +  M0 ;
+    K(idx,idx) = K(idx,idx) +  invC'*K0*invC ;
+    M(idx,idx) = M(idx,idx) +  invC'*M0*invC ;
+    %K(idx,idx) = K(idx,idx) +  K0 ;
+    %M(idx,idx) = M(idx,idx) +  M0 ;
 end

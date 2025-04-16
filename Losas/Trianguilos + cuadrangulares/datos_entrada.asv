@@ -1,0 +1,14 @@
+datos='Libro1';
+%Connectivity - Area
+[NUM1,TXT1,RAW1]=xlsread(datos,'Connectivity - Area');%%
+%Joint Coordinates
+[NUM2,TXT2,RAW2]=xlsread(datos,'Joint Coordinates');%%
+
+
+%% nudos que conectan elementos
+ninf=str2double(TXT1(4:end,3:6));
+%% nombres 
+nombres_elemetos=str2double(TXT1(4:end,1));
+Numero_de_nodos_elem= (NUM1(4:end,1));
+
+xy_nudos=NUM2(:,1:2);
