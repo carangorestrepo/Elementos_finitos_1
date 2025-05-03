@@ -55,6 +55,7 @@ napoyo=size(tipo_apoyo,1);
 %apoyo=zeros(napoyo,1);
 ca = zeros(nudos*3,1);
 f = zeros(nudos*3,1);
+fp = zeros(nudos*3,1);%% cargas  y mometos puntuales
 P = zeros(elementos,1);
 qe_glob = cell(elementos(1,1),1);
 qe_loc  = cell(elementos(1,1),1);
@@ -74,15 +75,15 @@ end
 sizenudo_carga=size(nudo_carga,1);
 for i=1:sizenudo_carga
     if  nudo_carga(i,3)==X
-        f(nudo_carga(i,2)*3-2,1)=nudo_carga(i,1);
+        fp(nudo_carga(i,2)*3-2,1)=nudo_carga(i,1);
     elseif  nudo_carga(i,3)==Y 
-        f(nudo_carga(i,2)*3-1,1)=nudo_carga(i,1);
+        fp(nudo_carga(i,2)*3-1,1)=nudo_carga(i,1);
         %% matriz de masa asociada a las cargas puntuales
         My(nudo_carga(i,2)*3-2,nudo_carga(i,2)*3-2)=abs(nudo_carga(i,1))/g;
         My(nudo_carga(i,2)*3-1,nudo_carga(i,2)*3-1)=abs(nudo_carga(i,1))/g;
         My(nudo_carga(i,2)*3,nudo_carga(i,2)*3)=abs(nudo_carga(i,1))/g;
     elseif nudo_carga(i,3)==G 
-        f(nudo_carga(i,2)*3,1)=nudo_carga(i,1);
+        fp(nudo_carga(i,2)*3,1)=nudo_carga(i,1);
     end
     M=My;
 figure(1)
@@ -203,9 +204,14 @@ for ite=1:iteraciones
         Fe{e}=Fex{e}+ Fey{e};
         Ke{e} = T{e}'*Kloc*T{e};    
         K(GLe(e,:),GLe(e,:)) = K(GLe(e,:),GLe(e,:)) + Ke{e}; % ensambla Ke{e} en K global
-        f(GLe(e,:))          = f(GLe(e,:))          + Fe{e}; % ensambla fe{e} en f global
-        M(GLe(e,:),GLe(e,:)) = M(GLe(e,:),GLe(e,:)) + Myy{e}; % ensambla My{e} en M global
-        MMex(GLe(e,:),GLe(e,:)) = MMex(GLe(e,:),GLe(e,:)) + Myyex{e}; % ensambla My{e} en M global
+        if iteraciones==ite
+             f(GLe(e,:))          = f(GLe(e,:))-  Fe{e}; % ensambla fe{e} en f global
+            f(GLe(e,:))          = f(GLe(e,:))+  Fe{e}; % ensambla fe{e} en f global
+        else
+            f(GLe(e,:))          = fp(GLe(e,:)) + Fe{e}; % ensambla fe{e} en f global
+            M(GLe(e,:),GLe(e,:)) = M(GLe(e,:),GLe(e,:)) + Myy{e}; % ensambla My{e} en M global
+            MMex(GLe(e,:),GLe(e,:)) = MMex(GLe(e,:),GLe(e,:)) + Myyex{e}; % ensambla My{e} en M global
+        end
     end
     %% grados de libertad que no tienen ceros
     smy=sum(abs(K),1);
@@ -272,12 +278,13 @@ for ite=1:iteraciones
         x1 = xye(e,1);  x2 = xye(e,3);
         y1 = xye(e,2);  y2 = xye(e,4);
         deformada(AEe(e),EIe(e),Ace(e),Ce(e,:),T{e}*a(GLe(e,:)),Le(e),ang(e),kw(e),P(e),lalb(e,:),esc_def,esc_faxial,esc_V,esc_M,x1,y1,x2,y2,tipo_conti(e,:),iteraciones,ite,puntos_graficas)
-        P(e)=qe_glob{e}(1);
+        P(e)=-qe_glob{e}(1);
     end
     if strcmp(PD,'si')==1
         if ite==1
             K = zeros(nudos*3);
             Fe = cell(elementos,1);
+            %f = zeros(nudos*3,1);
         end
     end
 end
