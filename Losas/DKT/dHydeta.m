@@ -1,0 +1,11 @@
+function [dc]=dHydeta(t4,t5,t6,r4,r5,r6,q4,q5,q6,xi,eta)
+d1 = -t5*(1.0-2.0*eta) - xi*(t6-t5);
+d2 =  1.0 + r5*(1.0-2.0*eta) - xi*(r5+r6);
+d3 = -q5*(1.0-2.0*eta) + xi*(q5+q6);
+d4 =  xi*(t4+t6);
+d5 =  xi*(r4-r6);
+d6 = -xi*(q4-q6);
+d7 =  t5*(1.0-2.0*eta) - xi*(t4+t5);
+d8 = -1.0 + r5*(1.0-2.0*eta) + xi*(r4-r5);
+d9 = -q5*(1.0-2.0*eta) - xi*(q4-q5);
+dc=[d1,d2,d3,d4,d5,d6,d7,d8,d9];
