@@ -1,6 +1,9 @@
 clc
 clear
-syms C1 C2 C3 C4 C5 C6 x A B C D k Ac EI L M k1 re ima AE xi
+syms C1 C2 C3 C4 C5 C6 D  V M t v q  x EI Ac k  x c1 c2 c3 c4 real
+syms xi
+
+%%{
 E = 24870062.3;                 % Modulo de elasticidad del concreto [kPa]
 G = 0.4*E;                      % Modulo de cortante [kPa]
 L = 4;                          % Longitud [m]
@@ -14,86 +17,80 @@ rho = 2.4;                      % Densidad del concreto [Mg/m^3]
 g = 9.8066502;                  % Aceleración de gravedad
 P = 1;                          % Carga axial de pandeo [kN/m]
 q = 0;                          % Carga vertical  o para matriz de rigidez[kN/m]
-b = 0;                          % Carga axial o para matriz de rigidez[kN/m]
-%A=((EI*k - (EI*k*(- 4*Ac^2 + EI*k))^(1/2))/(2*Ac*EI))^(1/2);
-%B=((EI*k + (EI*k*(- 4*Ac^2 + EI*k))^(1/2))/(2*Ac*EI))^(1/2);
-%C=(EI*k - (EI*k*(- 4*Ac^2 + EI*k))^(1/2))/(2*Ac) - (EI*k)/Ac;
-%D=(EI*k + (EI*k*(- 4*Ac^2 + EI*k))^(1/2))/(2*Ac) - (EI*k)/Ac;
-%M=C3*C*exp( x*A)...
-%+ C4*C*exp(-x*A)... 
-%+ C1*D*exp( x*B)...
-%+ C2*D*exp(-x*B);
-%syms Ac k y EI
+       % V M    t  v  
+val= [   0,0   ,0 ,-k;
+         1,0   ,0 ,0;
+         0,1/EI,0  ,0;
+     -1/Ac, 0  ,1 ,0];
+ 
+ec1=V*D == -k*v+q ;     
+ec2=M*D == V      ;       
+ec3=t*D == M/EI    ;      
+ec4=v*D == t - V/Ac ;
+ 
+ Un = [ V M t v].';
+ An = simplify(equationsToMatrix([ ec1;ec2;ec3;ec4], Un));
+ 
+DAn=det(An);
 
-%despejo todo en funcion de M
-%V' == -k*v+q    (1) %Equilibrio de fuerzas cortantes
-%M' == V       (2)  %%Relación momento-cortante
-%t' == M/EI    (3)  %Relación giro-momento
-%v' == t - V/Ac(4)  %Relación desplazamiento-giro
+a=solve(DAn==0,D);
 
-%derivo (2)
-%M''=V'
-%(M''-q)/k=-v  (5)  (2) en (1)
+a=double(a);
 
-%derivo de nuevo (5)
+[V,D] = eig(val);
+% Separar variables simbólicas
+U = sym(zeros(4,1));  % Solución general con constantes
+ci = [C1, C2, C3, C4];  % Constantes de integración
 
-%(M^3-q')/k=-v' (7)
+% Analizar cada valor propio
+used = false(1,4); % Para evitar duplicar pares conjugados
+index = 1;
 
-% despejo t en (4)
+for i = 1:4
+    if used(i)
+        continue
+    end
 
-%t = v'+ V/Ac(6)
-%remplazo  (7) y (4)
+    lambda = D(i,i);
+    w = V(:,i);
 
-%t= (M^3-q')/k+M'/Ac
+    if imag(lambda) == 0
+        % Valor propio real: solución real directa
+        U = U + ci(index) * exp(lambda * x) * w;
+        index = index + 1;
+        used(i) = true;
+    else
+        % Par complejo conjugado
+        lambda_conj = conj(lambda);
+        
+        % vector propio conjugado
+        w_conj = V(:,i+1);
 
-%derivo (6)
+        % Separar parte real e imaginaria
+        alpha = real(lambda);
+        beta  = imag(lambda);
+        wr = real(w);
+        wi = imag(w);
 
-%t^1=(M^4-q'')/k+M^2/Ac
+        % Dos soluciones reales
+        u1 = exp(alpha*x) * ( wr*cos(beta*x) - wi*sin(beta*x) );
+        u2 = exp(alpha*x) * ( wr*sin(beta*x) + wi*cos(beta*x) );
 
-%M/EI=(M^4-q'')/k+M^2/Ac
-%A=(solve(M^4/k-M^2/Ac+1/EI==0,M))
+        % Agregar con constantes
+        U = U + ci(index)*u1 + ci(index+1)*u2;
+        index = index + 2;
 
-%A=(solve(M^4-k*M^2/Ac+k/EI==0,M))
-
-%a=1
-%b=-k/Ac
-%c=k/EI
-
-%m=(-b/(2*a)-(b^2-4*a*c)^(1/2)/(2*a))^(1/2)
-
-%m=(k/(2*Ac) - (k^2/Ac^2 - (4*k)/EI)^(1/2)/2)^(1/2)
-
-%m1=(k/(2*Ac)-(k^2/(Ac^2*4)-(k)/(EI))^(1/2))^(1/2)
-
-re=k/(2*Ac);
-ima=-(-k^2/(Ac^2*4)+(k)/(EI))^(1/2);
-
-n=2;
-
-r=(re^2+ima^2)^(1/2);
-phi=atan2(ima,re);
-
-k1=0;
-wr=r^(1/n)*(cos((phi+2*pi*k1)/n));
-wi=-r^(1/n)*(sin((phi+2*pi*k1)/n));
-%syms wr wi
-%M=cos(wi*x)*(C1*exp(wr*x)+C2*exp(-wr*x))+sin(wi*x)*(C3*exp(wr*x)+C4*exp(-wr*x));
-M=cos(wi*x)*(C1*cosh(wr*x)+C2*sinh(wr*x))+sin(wi*x)*(C3*cosh(wr*x)+C4*sinh(wr*x));
-
-n1=-(-(k*(((- 4*Ac^2 + EI*k)/(EI*k))^(1/2) - 1))/(2*Ac))^(1/2);
-n2=-( (k*(((- 4*Ac^2 + EI*k)/(EI*k))^(1/2) + 1))/(2*Ac))^(1/2);
-n3= (-(k*(((- 4*Ac^2 + EI*k)/(EI*k))^(1/2) - 1))/(2*Ac))^(1/2);
-n4= ( (k*(((- 4*Ac^2 + EI*k)/(EI*k))^(1/2) + 1))/(2*Ac))^(1/2);
-
-%a=-(k/(2*Ac)- ((k/(2*Ac))^2-k/(EI))^(1/2) )^(1/2)
-
-%M=C1*exp(n1*x)+C2*exp(n2*x)+C3*exp(n3*x)+C4*exp(n4*x);
-EA=E*Ae;
-V=diff(M,x,1);
-v=-diff(V,x,1)/k;
-t=V/Ac+diff(v,x,1);
+        used(i) = true;
+        used(i+1) = true;
+    end
+end
+V=U(1,:);
+M=U(2,:);
+t=U(3,:);
+v=U(4,:);
 
 %se definen las ecuaciones diferenciales a carga axial
+b=0;
 A=int(b,x)+C5;
 u=int(A/AE,x)+C6;
 
@@ -133,8 +130,6 @@ dx_dxi = L/2;              % jacobiano de la transformacion isoparametrica
 txi = 15; % polinomio grado 4
 [xiv,wv] = gausslegendre_quad(txi);
 
-
-
 N_t21=matlabFunction(N_t2);
 N_w21=matlabFunction(N_w2);
 N_u21=matlabFunction(N_u2);
@@ -160,7 +155,6 @@ H = zeros(6);
 mq=zeros(6);
 
 MV = zeros(6,1);
-
 
 q1 = 25;       % Carga vertical inicial [kN/m]
 q2 = 25;       % Carga vertical final [kN/m]

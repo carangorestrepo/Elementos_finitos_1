@@ -172,11 +172,11 @@ kWinkler=500; % coeficiente de balasto
 
 naxi=1;     % exponenete carga axial final viga
 b1a = 25;      % Carga axial inicial [kN/m]
-b2a = 25;      % Carga axial final [kN/m]
+b2a = 30;      % Carga axial final [kN/m]
 bx = (b2a - b1a)/L^naxi * x^naxi + b1a;  % Carga axial variable  (polinómica)
 
-b = matlabFunction(subs(bx,x, L*(1+xi)/2),"Vars",{xi});
-q = matlabFunction(subs(qx,x, L*(1+xi)/2),"Vars",{xi});
+b = matlabFunction(subs(bx,x, L*(1+xi)/2),);
+q = matlabFunction(subs(qx,x, L*(1+xi)/2));
 
 for i=1:txi
     %% Funciones de forma Lagrangianas

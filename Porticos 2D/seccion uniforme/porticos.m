@@ -203,8 +203,7 @@ for ite=1:iteraciones
         Ke{e} = T{e}'*Kloc*T{e};    
         K(GLe(e,:),GLe(e,:)) = K(GLe(e,:),GLe(e,:)) + Ke{e}; % ensambla Ke{e} en K global
         if iteraciones==ite
-            f(GLe(e,:))          = f(GLe(e,:))-  Fe{e}; % ensambla fe{e} en f global
-            f(GLe(e,:))          = f(GLe(e,:))+  Fe{e}; % ensambla fe{e} en f global
+            f(GLe(e,:))          = fp(GLe(e,:))+  Fe{e}; % ensambla fe{e} en f global
         else
             f(GLe(e,:))          = fp(GLe(e,:)) + Fe{e}; % ensambla fe{e} en f global
             M(GLe(e,:),GLe(e,:)) = M(GLe(e,:),GLe(e,:)) + Myy{e}; % ensambla My{e} en M global
