@@ -108,9 +108,15 @@ PD='si';
 lalb=zeros(10,2);
 %lalb=[0,0.4;0,0.4;0,0.4;0,0.4;0,0.4;0,0.4;0,0.4;0,0.4;0,0.4;0,0.4;0,0.4;0,0.4;0.2,0.2;0.2,0.2;0.2,0.2;0.2,0.2;0.2,0.2;0.2,0.2;0.2,0.2;0.2,0.2];
 %% escalas de Dibujo la estructura y su deformada
+<<<<<<< HEAD
 esc_def    = 50;          % escalamiento de la deformada
 esc_faxial = 0.003;      % escalamiento del diagrama de axiales
 esc_V      = 0.01;       % escalamiento del diagrama de cortantes
+=======
+esc_def    = 500;          % escalamiento de la deformada
+esc_faxial = 0.003;      % escalamiento del diagrama de axiales
+esc_V      = 0.02;       % escalamiento del diagrama de cortantes
+>>>>>>> 3f995df81f4da25d2f1d935fb3b75b7b51361fd1
 esc_M      = 0.01;      % escalamiento del diagrama de momentos
 fesct=max(max(xyc))*11/16*3;%% escala textos
 fesc=max(max(xyc))*0.4/16;%% escala apoyos

@@ -24,7 +24,11 @@ q2=w{1,1}(5);
 xs=linspace(0,L,puntos_graficas);
 s=linspace(0,L,puntos_graficas);
 
+<<<<<<< HEAD
 [~,~,~,V,M,fax,v,u]=matriz_rigidez(tipo_conti,EA,Ac,EI,L,b1,b2,q1,q2,1,v1,v2,t1,t2,u1,u2,xs,kw,P,lalb,puntos_graficas,ite);
+=======
+[~,~,~,V,M,fax,v,u]=matriz_rigidez(tipo_conti,EA,Ac,EI,L,b1,b2,q1,q2,1,v1,v2,t1,t2,u1,u2,xs,kw,P,lalb,puntos_graficas);
+>>>>>>> 3f995df81f4da25d2f1d935fb3b75b7b51361fd1
 
 if ite==iteraciones
     %v=double(subs(v,x,xs));

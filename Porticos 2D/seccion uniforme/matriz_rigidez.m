@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 function [Kloc,FE,Me,V,M,fax,v,u]=matriz_rigidez(tipo_conti,EA,Ac,EI,L,b1,b2,q1,q2,ana,v1,v2,t1,t2,u1,u2,x,k,P,lalb,puntos_graficas,ite)
+=======
+function [Kloc,FE,Me,V,M,fax,v,u]=matriz_rigidez(tipo_conti,EA,Ac,EI,L,b1,b2,q1,q2,ana,v1,v2,t1,t2,u1,u2,x,k,P,lalb,puntos_graficas)
+>>>>>>> 3f995df81f4da25d2f1d935fb3b75b7b51361fd1
 
 % Se definen algunas iniciales
 V=0;
@@ -254,6 +258,7 @@ FE =[
       (12*L^3*q2*cosh((abs(L)^2*conj(landa))/L)*conj(Ac)^4 - 12*L^3*q2*conj(Ac)^4 + 6*L^3*q1*conj(EI)*conj(Ac)^3*conj(landa)^2 - 6*L^3*q2*conj(EI)*conj(Ac)^3*conj(landa)^2 + 2*L*q1*abs(L)^4*conj(Ac)^4*conj(landa)^2 + L*q2*abs(L)^4*conj(Ac)^4*conj(landa)^2 + 2*L*q1*conj(EI)*abs(L)^4*conj(Ac)^3*conj(landa)^4 + L*q2*conj(EI)*abs(L)^4*conj(Ac)^3*conj(landa)^4 - 6*L^3*q1*conj(EI)*conj(P)*conj(Ac)^2*conj(landa)^2 + 6*L^3*q2*conj(EI)*conj(P)*conj(Ac)^2*conj(landa)^2 - 6*L^3*q1*cosh((abs(L)^2*conj(landa))/L)*conj(EI)*conj(Ac)^3*conj(landa)^2 + 6*L^3*q2*cosh((abs(L)^2*conj(landa))/L)*conj(EI)*conj(Ac)^3*conj(landa)^2 + L*q1*cosh((abs(L)^2*conj(landa))/L)*abs(L)^4*conj(Ac)^4*conj(landa)^2 + 2*L*q2*cosh((abs(L)^2*conj(landa))/L)*abs(L)^4*conj(Ac)^4*conj(landa)^2 - 3*L^2*q1*sinh((abs(L)^2*conj(landa))/L)*abs(L)^2*conj(Ac)^4*conj(landa) - 9*L^2*q2*sinh((abs(L)^2*conj(landa))/L)*abs(L)^2*conj(Ac)^4*conj(landa) + L*q1*cosh((abs(L)^2*conj(landa))/L)*conj(EI)*abs(L)^4*conj(Ac)^3*conj(landa)^4 + 2*L*q2*cosh((abs(L)^2*conj(landa))/L)*conj(EI)*abs(L)^4*conj(Ac)^3*conj(landa)^4 + 6*L^3*q1*cosh((abs(L)^2*conj(landa))/L)*conj(EI)*conj(P)*conj(Ac)^2*conj(landa)^2 - 6*L^3*q2*cosh((abs(L)^2*conj(landa))/L)*conj(EI)*conj(P)*conj(Ac)^2*conj(landa)^2 - 2*L*q1*conj(EI)*abs(L)^4*conj(P)*conj(Ac)^2*conj(landa)^4 - L*q2*conj(EI)*abs(L)^4*conj(P)*conj(Ac)^2*conj(landa)^4 - 6*L^2*q2*sinh((abs(L)^2*conj(landa))/L)*conj(EI)*abs(L)^2*conj(Ac)^3*conj(landa)^3 - L*q1*cosh((abs(L)^2*conj(landa))/L)*conj(EI)*abs(L)^4*conj(P)*conj(Ac)^2*conj(landa)^4 - 2*L*q2*cosh((abs(L)^2*conj(landa))/L)*conj(EI)*abs(L)^4*conj(P)*conj(Ac)^2*conj(landa)^4 + 6*L^2*q2*sinh((abs(L)^2*conj(landa))/L)*conj(EI)*abs(L)^2*conj(P)*conj(Ac)^2*conj(landa)^3)/(6*abs(L)^2*conj(landa)^2*(conj(Ac)^2 + conj(EI)*conj(Ac)*conj(landa)^2 - conj(EI)*conj(P)*conj(landa)^2)*(2*L*conj(Ac)^2 - 2*L*cosh((abs(L)^2*conj(landa))/L)*conj(Ac)^2 + sinh((abs(L)^2*conj(landa))/L)*abs(L)^2*conj(Ac)^2*conj(landa) - sinh((abs(L)^2*conj(landa))/L)*conj(EI)*abs(L)^2*conj(P)*conj(landa)^3 + sinh((abs(L)^2*conj(landa))/L)*conj(EI)*abs(L)^2*conj(Ac)*conj(landa)^3))];
 
         end
+<<<<<<< HEAD
         if ite==1 
             % matriz de rigidez local expresada en el sistema de coordenadas locales
             % empotrado empotrado
@@ -280,12 +285,19 @@ FE =[
             [X1,Y1,M1,X2,Y2,M2] = fe_ec_dif(L, EI, Ac, EA, q1,q2,q1,q2,k,P,puntos_graficas);
             FE=[X1;Y1;M1;X2;Y2;M2];
         end
+=======
+        %Kloc = Ke_ec_dif(L, EI, EA,Ac,k,P,puntos_graficas);
+        % momentos y reaccciones de empotramiento
+        [X1,Y1,M1,X2,Y2,M2] = fe_ec_dif(L, EI, Ac, EA, q1,q2,q1,q2,k,P,puntos_graficas);
+        %FE=[X1;Y1;M1;X2;Y2;M2];
+>>>>>>> 3f995df81f4da25d2f1d935fb3b75b7b51361fd1
         X1=abs(X1);
         Y1=abs(Y1);
         M1=-abs(M1);
         M2=-abs(M2);
    elseif ana==1 
        % cortantes, momentos, deformadas verticales, deformadas axiales, fuerzas axiales 
+<<<<<<< HEAD
        if ite==1
         % momentos, cortantes,axiales y deformadas
             V =q1.*x - (240.*Ac.*EI.*v2 - 240.*Ac.*EI.*v1 + 7.*Ac.*L.^4.*q1 + 3.*Ac.*L.^4.*q2 + 80.*EI.*L.^2.*q1 + 40.*EI.*L.^2.*q2 - 120.*Ac.*EI.*L.*t1 - 120.*Ac.*EI.*L.*t2)/(20.*L.*(Ac.*L.^2 + 12.*EI)) - (x.^2.*(q1 - q2))/(2.*L);
@@ -297,6 +309,10 @@ FE =[
            P=-P;
            [fax,V,M,u,v] = def_ec_dif(L, EI, Ac, EA, 0,0, q1,q2,k,P,v1,v2,t1,t2,u1,u2,puntos_graficas);
        end     
+=======
+       P=0;
+       [fax,V,M,u,v] = def_ec_dif(L, EI, Ac, EA, 0,0, q1,q2,k,P,v1,v2,t1,t2,u1,u2,puntos_graficas);
+>>>>>>> 3f995df81f4da25d2f1d935fb3b75b7b51361fd1
         
    end 
 end

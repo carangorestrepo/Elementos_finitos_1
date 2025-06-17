@@ -163,7 +163,11 @@ MV = zeros(6,1);
 
 
 q1 = 25;       % Carga vertical inicial [kN/m]
+<<<<<<< HEAD
 q2 = 25;       % Carga vertical final [kN/m]
+=======
+q2 = 30;       % Carga vertical final [kN/m]
+>>>>>>> 3f995df81f4da25d2f1d935fb3b75b7b51361fd1
 nq=1;       % exponente carga vertical final viga
 qx = (q2 - q1)/L^nq * x^nq + q1;  % Carga vertical variable (polinómica)
 
@@ -172,11 +176,19 @@ kWinkler=500; % coeficiente de balasto
 
 naxi=1;     % exponenete carga axial final viga
 b1a = 25;      % Carga axial inicial [kN/m]
+<<<<<<< HEAD
 b2a = 25;      % Carga axial final [kN/m]
 bx = (b2a - b1a)/L^naxi * x^naxi + b1a;  % Carga axial variable  (polinómica)
 
 b = matlabFunction(subs(bx,x, L*(1+xi)/2),"Vars",{xi});
 q = matlabFunction(subs(qx,x, L*(1+xi)/2),"Vars",{xi});
+=======
+b2a = 30;      % Carga axial final [kN/m]
+bx = (b2a - b1a)/L^naxi * x^naxi + b1a;  % Carga axial variable  (polinómica)
+
+b = matlabFunction(subs(bx,x, L*(1+xi)/2));
+q = matlabFunction(subs(qx,x, L*(1+xi)/2));
+>>>>>>> 3f995df81f4da25d2f1d935fb3b75b7b51361fd1
 
 for i=1:txi
     %% Funciones de forma Lagrangianas

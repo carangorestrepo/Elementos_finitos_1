@@ -61,6 +61,38 @@ qe_glob = cell(elementos(1,1),1);
 qe_loc  = cell(elementos(1,1),1);
 puntos_graficas=101; 
 size_elemento_carga=size(elemento_carga,1);
+<<<<<<< HEAD
+=======
+
+%% vector de cargas distribuidas
+for i=1:size_elemento_carga
+    if elemento_carga(i,4)==X
+        wex(elemento_carga(i,3),1:2)=wex(elemento_carga(i,3),1:2)+elemento_carga(i,1:2);
+    end
+    if elemento_carga(i,4)==Y
+        wey(elemento_carga(i,3),1:2)=wey(elemento_carga(i,3),1:2)+elemento_carga(i,1:2);
+    end  
+end
+%% vector de cargas puntuales
+sizenudo_carga=size(nudo_carga,1);
+for i=1:sizenudo_carga
+    if  nudo_carga(i,3)==X
+        fp(nudo_carga(i,2)*3-2,1)=nudo_carga(i,1);
+    elseif  nudo_carga(i,3)==Y 
+        fp(nudo_carga(i,2)*3-1,1)=nudo_carga(i,1);
+        %% matriz de masa asociada a las cargas puntuales
+        My(nudo_carga(i,2)*3-2,nudo_carga(i,2)*3-2)=abs(nudo_carga(i,1))/g;
+        My(nudo_carga(i,2)*3-1,nudo_carga(i,2)*3-1)=abs(nudo_carga(i,1))/g;
+        My(nudo_carga(i,2)*3,nudo_carga(i,2)*3)=abs(nudo_carga(i,1))/g;
+    elseif nudo_carga(i,3)==G 
+        fp(nudo_carga(i,2)*3,1)=nudo_carga(i,1);
+    end
+    M=My;
+figure(1)
+flecha(nudo_carga,xyc(nudo_carga(:,2),:))
+end
+
+>>>>>>> 3f995df81f4da25d2f1d935fb3b75b7b51361fd1
 %% Asignacion de resortes
 sizenudo_resorte=size(nudo_resorte,1);
 for i=1:sizenudo_resorte
@@ -74,11 +106,16 @@ for i=1:sizenudo_resorte
 end
 %%
 if strcmp(PD,'si')==1
+<<<<<<< HEAD
     iteraciones=30;
+=======
+    iteraciones=2;
+>>>>>>> 3f995df81f4da25d2f1d935fb3b75b7b51361fd1
 else
     iteraciones=1;
 end
 for ite=1:iteraciones
+<<<<<<< HEAD
     %% vector de cargas distribuidas
     for i=1:size_elemento_carga
         if elemento_carga(i,4)==X
@@ -106,6 +143,8 @@ for ite=1:iteraciones
     figure(1)
     flecha(nudo_carga,xyc(nudo_carga(:,2),:))
     end
+=======
+>>>>>>> 3f995df81f4da25d2f1d935fb3b75b7b51361fd1
     for e=1:elementos % para cada barra
         % saco los 4 cordenadas de la barra e
         xye(e,:) = [xyc(ninf(e,1),1),xyc(ninf(e,1),2),xyc(ninf(e,2),1),xyc(ninf(e,2),2)];
@@ -149,8 +188,13 @@ for ite=1:iteraciones
                 0  0  0  0  0  1];
         % matriz de rigidez nudos rigidos local expresada en el sistema de coordenadas locales
         % para la barra e
+<<<<<<< HEAD
         [Kloc,~,Mex]=matriz_rigidez(tipo_conti(e,:),EA,Ac,EI,L,wex(e,1),wex(e,2),wex(e,1),wex(e,2),0,0,0,0,0,0,0,0,kw(e),P(e),lalb(e,:),puntos_graficas,ite);
         [~,FEy,Mey]   =matriz_rigidez(tipo_conti(e,:),EA,Ac,EI,L,wey(e,1),wey(e,2),wey(e,1),wey(e,2),0,0,0,0,0,0,0,0,kw(e),P(e),lalb(e,:),puntos_graficas,ite);
+=======
+        [Kloc,~,Mex]=matriz_rigidez(tipo_conti(e,:),EA,Ac,EI,L,wex(e,1),wex(e,2),wex(e,1),wex(e,2),0,0,0,0,0,0,0,0,kw(e),P(e),lalb(e,:),puntos_graficas);
+        [~,FEy,Mey]   =matriz_rigidez(tipo_conti(e,:),EA,Ac,EI,L,wey(e,1),wey(e,2),wey(e,1),wey(e,2),0,0,0,0,0,0,0,0,kw(e),P(e),lalb(e,:),puntos_graficas);
+>>>>>>> 3f995df81f4da25d2f1d935fb3b75b7b51361fd1
         Kloce{e}=Kloc;
         %[Kloc,FE,Me,V,M,fax,v,u]=fuerzas_empotramiento_bwinckler(EA,Ac,EI,L,we(e,1),we(e,2),0,0,0,0,0,0,0)
         %% direccion de carga distribuida
@@ -203,7 +247,12 @@ for ite=1:iteraciones
         Ke{e} = T{e}'*Kloc*T{e};    
         K(GLe(e,:),GLe(e,:)) = K(GLe(e,:),GLe(e,:)) + Ke{e}; % ensambla Ke{e} en K global
         if iteraciones==ite
+<<<<<<< HEAD
             f(GLe(e,:))          = fp(GLe(e,:))+  Fe{e}; % ensambla fe{e} en f global
+=======
+             f(GLe(e,:))          = f(GLe(e,:))-  Fe{e}; % ensambla fe{e} en f global
+            f(GLe(e,:))          = f(GLe(e,:))+  Fe{e}; % ensambla fe{e} en f global
+>>>>>>> 3f995df81f4da25d2f1d935fb3b75b7b51361fd1
         else
             f(GLe(e,:))          = fp(GLe(e,:)) + Fe{e}; % ensambla fe{e} en f global
             M(GLe(e,:),GLe(e,:)) = M(GLe(e,:),GLe(e,:)) + Myy{e}; % ensambla My{e} en M global
@@ -278,6 +327,7 @@ for ite=1:iteraciones
         P(e)=-qe_glob{e}(1);
     end
     if strcmp(PD,'si')==1
+<<<<<<< HEAD
         if ite~=iteraciones
             K = zeros(nudos*3);
             Fe = cell(elementos,1);
@@ -290,6 +340,12 @@ for ite=1:iteraciones
             Cex = cell(elementos,1);
             Fex = cell(elementos,1);
             Fey = cell(elementos,1);
+=======
+        if ite==1
+            K = zeros(nudos*3);
+            Fe = cell(elementos,1);
+            %f = zeros(nudos*3,1);
+>>>>>>> 3f995df81f4da25d2f1d935fb3b75b7b51361fd1
         end
     end
 end
