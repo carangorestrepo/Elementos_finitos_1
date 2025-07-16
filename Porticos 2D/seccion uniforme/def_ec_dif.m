@@ -48,11 +48,7 @@ v     = y(1,:);           % Desplazamiento vertical de la viga [m]
 
       dydx = zeros(6,1);
       %         y(1)          = v
-<<<<<<< HEAD
       dydx(v_) = y(t_)+(dydx(M_)+(P)*dydx(v_))/Ac;      % = theta
-=======
-      dydx(v_) = y(t_)-y(V_)/Ac;      % = theta
->>>>>>> 3f995df81f4da25d2f1d935fb3b75b7b51361fd1
       dydx(t_) = y(M_)/(EI);          % = M/(EI)
       dydx(M_) = y(V_) - (P)*dydx(v_);% = V-P*diff(v)
       dydx(V_) = qyloc(x)-k*y(v_);    % = qyloc

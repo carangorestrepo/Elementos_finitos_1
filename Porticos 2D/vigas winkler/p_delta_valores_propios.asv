@@ -1,7 +1,7 @@
 clc
 clear
 syms C1 C2 C3 C4 C5 C6 D  V M t v q  x EI Ac k  x c1 c2 c3 c4 real
-syms xi
+syms xi Dv DM DV Dt DQ Q w P
 
 %%{
 E = 24870062.3;                 % Modulo de elasticidad del concreto [kPa]
@@ -15,28 +15,15 @@ EI = E*I;                       % Rigidez a flexión
 AE = Ae*E;                      % Rigidez axial
 rho = 2.4;                      % Densidad del concreto [Mg/m^3]
 g = 9.8066502;                  % Aceleración de gravedad
-P = 1;                          % Carga axial de pandeo [kN/m]
+P = 1000;                          % Carga axial de pandeo [kN/m]
 q = 0;                          % Carga vertical  o para matriz de rigidez[kN/m]
-       % V M    t  v  
-val= [  0,0   ,0 ,-k;
-        1,0   ,0 ,0;
-        0,1/EI,0 ,0;
-    -1/Ac, 0  ,1 ,0];
- 
-ec1=V*D == -k*v+q ;     
-ec2=M*D == V      ;       
-ec3=t*D == M/EI    ;      
-ec4=v*D == t - V/Ac ;
- 
- Un = [ V M t v].';
- An = simplify(equationsToMatrix([ ec1;ec2;ec3;ec4], Un));
- 
-DAn=det(An);
+              % V      M   t  v  
+val=[[          0,     0,  0, 0];
+     [ - P/Ac - 1,     0,  P, 0];
+     [          0, -1/EI,  0, 0];
+     [       1/Ac,     0, -1, 0]];
 
-a=solve(DAn==0,D);
-
-a=double(a);
-
+Sol4= -(-EI*P)^(1/2)/EI;
 [V,D] = eig(val);
 % Separar variables simbólicas
 U = sym(zeros(4,1));  % Solución general con constantes
@@ -52,7 +39,7 @@ for i = 1:4
     end
 
     lambda = D(i,i);
-    w = V(:,i)
+    w = V(:,i);
 
     if imag(lambda) == 0
         % Valor propio real: solución real directa
@@ -89,24 +76,6 @@ M=U(2,:);
 t=U(3,:);
 v=U(4,:);
 
-%{
-Un = [ C1 C2 C3 C4].';
-
-phi = simplify(equationsToMatrix([ V; M; t ;v  ], Un));
-
-q1 = 25;       % Carga vertical inicial [kN/m]
-q2 = 25;       % Carga vertical final [kN/m]
-nq=1;       % exponente carga vertical final viga
-qx = (q2 - q1)/L^nq * x^nq + q1;  % Carga vertical variable (polinómica)
-xp=phi*int(phi^(-1),x)*[qx;0;0;0];
-
-
-Vv=V+xp(1,:);
-Mm=M+xp(2,:);
-tt=t+xp(3,:);
-vv=v+xp(4,:);
-%}
-
 %se definen las ecuaciones diferenciales a carga axial
 b=0;
 A=int(b,x)+C5;
@@ -139,16 +108,6 @@ for i = 1:6
 	N_u2(i) = subs(u,{C1,C2,C3,C4,C5,C6,x},{c1,c2,c3,c4,c5,c6,L*(1+xi)/2}); 
 end
 K_TE2=	double(K_TE2);
-
-%{
-[c11,c22,c33,c44]=solve(subs(vv,x,0)==0,...% con sus respectivas condiciones de frontera
-                        subs(tt,x,0)==0,...
-                        subs(vv,x,L)==0,...
-                        subs(tt,x,L)==0,...
-                        [C1,C2,C3,C4]);
-
-Ma=double(subs(Mm,{C1,C2,C3,C4,x},{c11,c22,c33,c44,0}))
-%}
 
 %% cuadratura de Gauss-Legendre
 dx_dxi = L/2;              % jacobiano de la transformacion isoparametrica

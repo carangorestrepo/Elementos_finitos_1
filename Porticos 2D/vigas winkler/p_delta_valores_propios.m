@@ -1,6 +1,9 @@
 clc
 clear
-syms C1 C2 C3 C4 C5 C6 x A B C D k Ac EI L M k1 re ima AE xi
+syms C1 C2 C3 C4 C5 C6 D V M t v q x EI Ac k x c1 c2 c3 c4 real
+syms xi Dv DM DV Dt DQ Q w P
+
+%% Parámetros del sistema
 E = 24870062.3;                 % Modulo de elasticidad del concreto [kPa]
 G = 0.4*E;                      % Modulo de cortante [kPa]
 L = 4;                          % Longitud [m]
@@ -12,88 +15,113 @@ EI = E*I;                       % Rigidez a flexión
 AE = Ae*E;                      % Rigidez axial
 rho = 2.4;                      % Densidad del concreto [Mg/m^3]
 g = 9.8066502;                  % Aceleración de gravedad
-P = 1;                          % Carga axial de pandeo [kN/m]
-q = 0;                          % Carga vertical  o para matriz de rigidez[kN/m]
-b = 0;                          % Carga axial o para matriz de rigidez[kN/m]
-%A=((EI*k - (EI*k*(- 4*Ac^2 + EI*k))^(1/2))/(2*Ac*EI))^(1/2);
-%B=((EI*k + (EI*k*(- 4*Ac^2 + EI*k))^(1/2))/(2*Ac*EI))^(1/2);
-%C=(EI*k - (EI*k*(- 4*Ac^2 + EI*k))^(1/2))/(2*Ac) - (EI*k)/Ac;
-%D=(EI*k + (EI*k*(- 4*Ac^2 + EI*k))^(1/2))/(2*Ac) - (EI*k)/Ac;
-%M=C3*C*exp( x*A)...
-%+ C4*C*exp(-x*A)... 
-%+ C1*D*exp( x*B)...
-%+ C2*D*exp(-x*B);
-%syms Ac k y EI
+P = 1000;                       % Carga axial de pandeo [kN/m]
+q = 0;                          % Carga vertical o para matriz de rigidez[kN/m]
 
-%despejo todo en funcion de M
-%V' == -k*v+q    (1) %Equilibrio de fuerzas cortantes
-%M' == V       (2)  %%Relación momento-cortante
-%t' == M/EI    (3)  %Relación giro-momento
-%v' == t - V/Ac(4)  %Relación desplazamiento-giro
+%% Matriz del sistema
+%               V      M   t  v  
+val = [[          0,     0,  0, 0];
+       [ - P/Ac - 1,     0,  P, 0];
+       [          0, -1/EI,  0, 0];
+       [       1/Ac,     0, -1, 0]];
 
-%derivo (2)
-%M''=V'
-%(M''-q)/k=-v  (5)  (2) en (1)
+%% Solución del sistema
+[V, D] = eig(val);
+lambda = diag(D);
 
-%derivo de nuevo (5)
+% Inicializar solución general
+U = sym(zeros(4,1));
+ci = [C1, C2, C3, C4];  % Constantes de integración
+index = 1;
+n = length(lambda);
+used = false(1, n);
 
-%(M^3-q')/k=-v' (7)
+for i = 1:n
+    if used(i)
+        continue;
+    end
+    
+    current_lambda = lambda(i);
+    
+    % Verificar si es complejo
+    if imag(current_lambda) ~= 0
+        % Raíz compleja - buscar su conjugada
+        conj_idx = find(abs(lambda - conj(current_lambda)) < 1e-8);
+        conj_idx = conj_idx(1);
+        
+        % Obtener vectores propios
+        v = V(:,i);
+        v_conj = V(:,conj_idx);
+        
+        % Convertir a solución real
+        alpha = real(current_lambda);
+        beta = imag(current_lambda);
+        a = real(v);
+        b = imag(v);
+        
+        % Soluciones reales independientes
+        sol1 = exp(alpha*x)*(a*cos(beta*x) - b*sin(beta*x));
+        sol2 = exp(alpha*x)*(a*sin(beta*x) + b*cos(beta*x));
+        
+        U = U + ci(index)*sol1 + ci(index+1)*sol2;
+        index = index + 2;
+        
+        used(i) = true;
+        used(conj_idx) = true;
+    else
+        % Raíz real - verificar multiplicidad
+        mult = sum(abs(lambda - current_lambda) < 1e-8);
+        
+        if mult == 1
+            % Raíz simple
+            U = U + ci(index)*exp(current_lambda*x)*V(:,i);
+            index = index + 1;
+            used(i) = true;
+        else
+            % Raíz repetida - usar forma de Jordan
+            [V_jordan, J] = jordan(val);
+            
+            % Encontrar todos los vectores asociados
+            jordan_blocks = find(abs(diag(J) - current_lambda) < 1e-8);
+            
+            for k = 1:length(jordan_blocks)
+                block_start = jordan_blocks(k);
+                
+                % Determinar tamaño del bloque
+                block_size = 1;
+                while (block_start + block_size - 1 < n) && ...
+                      (J(block_start + block_size - 1, block_start + block_size) == 1)
+                    block_size = block_size + 1;
+                end
+                
+                % Construir términos para este bloque
+                for m = 0:block_size-1
+                    term = sym(0);
+                    for p = 0:m
+                        term = term + (x^p/factorial(p)) * exp(current_lambda*x) * ...
+                               V_jordan(:, block_start + m - p);
+                    end
+                    U = U + ci(index)*term;
+                    index = index + 1;
+                end
+                
+                used(jordan_blocks(k):jordan_blocks(k)+block_size-1) = true;
+            end
+        end
+    end
+end
 
-% despejo t en (4)
+%% Extraer componentes de la solución
+V = simplify(U(1));
+M = simplify(U(2));
+t = simplify(U(3));
+v = simplify(U(4));
 
-%t = v'+ V/Ac(6)
-%remplazo  (7) y (4)
 
-%t= (M^3-q')/k+M'/Ac
 
-%derivo (6)
-
-%t^1=(M^4-q'')/k+M^2/Ac
-
-%M/EI=(M^4-q'')/k+M^2/Ac
-%A=(solve(M^4/k-M^2/Ac+1/EI==0,M))
-
-%A=(solve(M^4-k*M^2/Ac+k/EI==0,M))
-
-%a=1
-%b=-k/Ac
-%c=k/EI
-
-%m=(-b/(2*a)-(b^2-4*a*c)^(1/2)/(2*a))^(1/2)
-
-%m=(k/(2*Ac) - (k^2/Ac^2 - (4*k)/EI)^(1/2)/2)^(1/2)
-
-%m1=(k/(2*Ac)-(k^2/(Ac^2*4)-(k)/(EI))^(1/2))^(1/2)
-
-re=k/(2*Ac);
-ima=-(-k^2/(Ac^2*4)+(k)/(EI))^(1/2);
-
-n=2;
-
-r=(re^2+ima^2)^(1/2);
-phi=atan2(ima,re);
-
-k1=0;
-wr=r^(1/n)*(cos((phi+2*pi*k1)/n));
-wi=-r^(1/n)*(sin((phi+2*pi*k1)/n));
-%syms wr wi
-%M=cos(wi*x)*(C1*exp(wr*x)+C2*exp(-wr*x))+sin(wi*x)*(C3*exp(wr*x)+C4*exp(-wr*x));
-M=cos(wi*x)*(C1*cosh(wr*x)+C2*sinh(wr*x))+sin(wi*x)*(C3*cosh(wr*x)+C4*sinh(wr*x));
-
-n1=-(-(k*(((- 4*Ac^2 + EI*k)/(EI*k))^(1/2) - 1))/(2*Ac))^(1/2);
-n2=-( (k*(((- 4*Ac^2 + EI*k)/(EI*k))^(1/2) + 1))/(2*Ac))^(1/2);
-n3= (-(k*(((- 4*Ac^2 + EI*k)/(EI*k))^(1/2) - 1))/(2*Ac))^(1/2);
-n4= ( (k*(((- 4*Ac^2 + EI*k)/(EI*k))^(1/2) + 1))/(2*Ac))^(1/2);
-
-%a=-(k/(2*Ac)- ((k/(2*Ac))^2-k/(EI))^(1/2) )^(1/2)
-
-%M=C1*exp(n1*x)+C2*exp(n2*x)+C3*exp(n3*x)+C4*exp(n4*x);
-EA=E*Ae;
-V=diff(M,x,1);
-v=-diff(V,x,1)/k;
-t=V/Ac+diff(v,x,1);
 
 %se definen las ecuaciones diferenciales a carga axial
+b=0;
 A=int(b,x)+C5;
 u=int(A/AE,x)+C6;
 
@@ -133,8 +161,6 @@ dx_dxi = L/2;              % jacobiano de la transformacion isoparametrica
 txi = 15; % polinomio grado 4
 [xiv,wv] = gausslegendre_quad(txi);
 
-
-
 N_t21=matlabFunction(N_t2);
 N_w21=matlabFunction(N_w2);
 N_u21=matlabFunction(N_u2);
@@ -161,7 +187,6 @@ mq=zeros(6);
 
 MV = zeros(6,1);
 
-
 q1 = 25;       % Carga vertical inicial [kN/m]
 q2 = 25;       % Carga vertical final [kN/m]
 nq=1;       % exponente carga vertical final viga
@@ -172,11 +197,11 @@ kWinkler=500; % coeficiente de balasto
 
 naxi=1;     % exponenete carga axial final viga
 b1a = 25;      % Carga axial inicial [kN/m]
-b2a = 30;      % Carga axial final [kN/m]
+b2a = 25;      % Carga axial final [kN/m]
 bx = (b2a - b1a)/L^naxi * x^naxi + b1a;  % Carga axial variable  (polinómica)
 
-b = matlabFunction(subs(bx,x, L*(1+xi)/2),);
-q = matlabFunction(subs(qx,x, L*(1+xi)/2));
+b = matlabFunction(subs(bx,x, L*(1+xi)/2),"Vars",{xi});
+q = matlabFunction(subs(qx,x, L*(1+xi)/2),"Vars",{xi});
 
 for i=1:txi
     %% Funciones de forma Lagrangianas

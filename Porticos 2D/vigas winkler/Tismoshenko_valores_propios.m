@@ -10,7 +10,6 @@ L = 4;                          % Longitud [m]
 Ae = 0.4^2;                     % Area [m^2]
 I = 0.4^4/12;                   % Inercia [m^4]
 Ac = Ae*G*5/6;                  % Coeficiente de corrección por cortante
-k = 500;                        % Coeficiente de balasto
 EI = E*I;                       % Rigidez a flexión
 AE = Ae*E;                      % Rigidez axial
 rho = 2.4;                      % Densidad del concreto [Mg/m^3]
@@ -18,13 +17,21 @@ g = 9.8066502;                  % Aceleración de gravedad
 P = 1;                          % Carga axial de pandeo [kN/m]
 q = 0;                          % Carga vertical  o para matriz de rigidez[kN/m]
        % V M    t  v  
-val= [  0,0   ,0 ,-k;
+val= [  0,0   ,0 ,0;
         1,0   ,0 ,0;
         0,1/EI,0 ,0;
     -1/Ac, 0  ,1 ,0];
- 
-ec1=V*D == -k*v+q ;     
-ec2=M*D == V      ;       
+% V cortante
+% M Momento
+% t angulo de giro
+% v deformacion
+% P catga axial de pandeo
+% q carga externa sobre elemento
+% EI rigidez a flexion
+% Ac Rigidez a cortante
+
+ec1=V*D == q ;     
+ec2=M*D == V-P*D*v;       
 ec3=t*D == M/EI    ;      
 ec4=v*D == t - V/Ac ;
  
@@ -37,59 +44,19 @@ a=solve(DAn==0,D);
 
 a=double(a);
 
-[V,D] = eig(val);
-% Separar variables simbólicas
-U = sym(zeros(4,1));  % Solución general con constantes
-ci = [C1, C2, C3, C4];  % Constantes de integración
+[Va, J] = jordan(val);
 
-% Analizar cada valor propio
-used = false(1,4); % Para evitar duplicar pares conjugados
-index = 1;
+% La solución general es:
+y = C1*Va(:,1) + C2*(x*Va(:,1) + Va(:,2)) + ...
+    C3*(x^2/2*Va(:,1) + x*Va(:,2) + Va(:,3)) + ...
+    C4*(x^3/6*Va(:,1) + x^2/2*Va(:,2) + x*Va(:,3) + Va(:,4));
 
-for i = 1:4
-    if used(i)
-        continue
-    end
+V = y(1);
+M = y(2);
+t = y(3);
+v = y(4);
 
-    lambda = D(i,i);
-    w = V(:,i)
 
-    if imag(lambda) == 0
-        % Valor propio real: solución real directa
-        U = U + ci(index) * exp(lambda * x) * w;
-        index = index + 1;
-        used(i) = true;
-    else
-        % Par complejo conjugado
-        lambda_conj = conj(lambda);
-        
-        % vector propio conjugado
-        w_conj = V(:,i+1);
-
-        % Separar parte real e imaginaria
-        alpha = real(lambda);
-        beta  = imag(lambda);
-        wr = real(w);
-        wi = imag(w);
-
-        % Dos soluciones reales
-        u1 = exp(alpha*x) * ( wr*cos(beta*x) - wi*sin(beta*x) );
-        u2 = exp(alpha*x) * ( wr*sin(beta*x) + wi*cos(beta*x) );
-
-        % Agregar con constantes
-        U = U + ci(index)*u1 + ci(index+1)*u2;
-        index = index + 2;
-
-        used(i) = true;
-        used(i+1) = true;
-    end
-end
-V=U(1,:);
-M=U(2,:);
-t=U(3,:);
-v=U(4,:);
-
-%{
 Un = [ C1 C2 C3 C4].';
 
 phi = simplify(equationsToMatrix([ V; M; t ;v  ], Un));
@@ -98,14 +65,12 @@ q1 = 25;       % Carga vertical inicial [kN/m]
 q2 = 25;       % Carga vertical final [kN/m]
 nq=1;       % exponente carga vertical final viga
 qx = (q2 - q1)/L^nq * x^nq + q1;  % Carga vertical variable (polinómica)
-xp=phi*int(phi^(-1),x)*[qx;0;0;0];
-
+xp=int(phi^(-1)*[qx;0;0;0],x);
 
 Vv=V+xp(1,:);
 Mm=M+xp(2,:);
 tt=t+xp(3,:);
 vv=v+xp(4,:);
-%}
 
 %se definen las ecuaciones diferenciales a carga axial
 b=0;
@@ -140,7 +105,7 @@ for i = 1:6
 end
 K_TE2=	double(K_TE2);
 
-%{
+
 [c11,c22,c33,c44]=solve(subs(vv,x,0)==0,...% con sus respectivas condiciones de frontera
                         subs(tt,x,0)==0,...
                         subs(vv,x,L)==0,...
@@ -148,7 +113,6 @@ K_TE2=	double(K_TE2);
                         [C1,C2,C3,C4]);
 
 Ma=double(subs(Mm,{C1,C2,C3,C4,x},{c11,c22,c33,c44,0}))
-%}
 
 %% cuadratura de Gauss-Legendre
 dx_dxi = L/2;              % jacobiano de la transformacion isoparametrica

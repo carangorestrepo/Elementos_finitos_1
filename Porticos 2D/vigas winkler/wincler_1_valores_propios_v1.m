@@ -37,81 +37,28 @@ a=solve(DAn==0,D);
 
 a=double(a);
 
-[V,D] = eig(val);
-% Separar variables simbólicas
-U = sym(zeros(4,1));  % Solución general con constantes
-ci = [C1, C2, C3, C4];  % Constantes de integración
+[Vectors, Lambda] = jordan(val);
 
-% Analizar cada valor propio
-used = false(1,4); % Para evitar duplicar pares conjugados
-index = 1;
-
-for i = 1:4
-    if used(i)
-        continue
-    end
-
-    lambda = D(i,i);
-    w = V(:,i)
-
-    if imag(lambda) == 0
-        % Valor propio real: solución real directa
-        U = U + ci(index) * exp(lambda * x) * w;
-        index = index + 1;
-        used(i) = true;
-    else
-        % Par complejo conjugado
-        lambda_conj = conj(lambda);
-        
-        % vector propio conjugado
-        w_conj = V(:,i+1);
-
-        % Separar parte real e imaginaria
-        alpha = real(lambda);
-        beta  = imag(lambda);
-        wr = real(w);
-        wi = imag(w);
-
-        % Dos soluciones reales
-        u1 = exp(alpha*x) * ( wr*cos(beta*x) - wi*sin(beta*x) );
-        u2 = exp(alpha*x) * ( wr*sin(beta*x) + wi*cos(beta*x) );
-
-        % Agregar con constantes
-        U = U + ci(index)*u1 + ci(index+1)*u2;
-        index = index + 2;
-
-        used(i) = true;
-        used(i+1) = true;
-    end
-end
+a1=real(Lambda(1,1));
+B1=imag(Lambda(1,1));
+a2=real(Lambda(3,3));
+B2=imag(Lambda(3,3));
+% Para ?1 = ?1 + i?1 (y su conjugado):
+y1 = exp(a1*x)*( (C1*cos(B1*x) + C2*sin(B1*x))*real(Vectors(:,1)) + ...
+                 (C2*cos(B1*x) - C1*sin(B1*x))*imag(Vectors(:,1)) );
+% Para ?2 = a2 + iB2 (y su conjugado):
+y2 = exp(a1*x)*( (C1*cos(B1*x) + C2*sin(B1*x))*real(Vectors(:,3)) + ...
+                 (C2*cos(B1*x) - C1*sin(B1*x))*imag(Vectors(:,3)) );
+U = y1 + y2;
 V=U(1,:);
 M=U(2,:);
 t=U(3,:);
 v=U(4,:);
 
-%{
-Un = [ C1 C2 C3 C4].';
-
-phi = simplify(equationsToMatrix([ V; M; t ;v  ], Un));
-
-q1 = 25;       % Carga vertical inicial [kN/m]
-q2 = 25;       % Carga vertical final [kN/m]
-nq=1;       % exponente carga vertical final viga
-qx = (q2 - q1)/L^nq * x^nq + q1;  % Carga vertical variable (polinómica)
-xp=phi*int(phi^(-1),x)*[qx;0;0;0];
-
-
-Vv=V+xp(1,:);
-Mm=M+xp(2,:);
-tt=t+xp(3,:);
-vv=v+xp(4,:);
-%}
-
 %se definen las ecuaciones diferenciales a carga axial
 b=0;
 A=int(b,x)+C5;
 u=int(A/AE,x)+C6;
-
 
 %# Se calcula la matrix de rigidez
 K_TE2 = sym(zeros(6,6));
@@ -139,16 +86,6 @@ for i = 1:6
 	N_u2(i) = subs(u,{C1,C2,C3,C4,C5,C6,x},{c1,c2,c3,c4,c5,c6,L*(1+xi)/2}); 
 end
 K_TE2=	double(K_TE2);
-
-%{
-[c11,c22,c33,c44]=solve(subs(vv,x,0)==0,...% con sus respectivas condiciones de frontera
-                        subs(tt,x,0)==0,...
-                        subs(vv,x,L)==0,...
-                        subs(tt,x,L)==0,...
-                        [C1,C2,C3,C4]);
-
-Ma=double(subs(Mm,{C1,C2,C3,C4,x},{c11,c22,c33,c44,0}))
-%}
 
 %% cuadratura de Gauss-Legendre
 dx_dxi = L/2;              % jacobiano de la transformacion isoparametrica
