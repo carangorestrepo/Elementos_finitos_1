@@ -7,7 +7,6 @@ npuntos = puntos_graficas;
 xinit   = linspace(0, L, npuntos);
 solini  = bvpinit(xinit, zeros(6,1));
 Ke = zeros(6);
-
 for i = 1:6
     ae = [i==1, i==2, i==3, i==4, i==5, i==6];
     sol = bvp5c(@ecuacion_diferencial, @condiciones_de_apoyo, solini);
@@ -42,17 +41,19 @@ max(max(abs(Ke - Ke2)))
       % E I ---------- = q(x)
       %        dx^4
       %
+      %      d^2 u(x)--
       % A E ---------- = -b(x)
       %        dx^2
 
       dydx = zeros(6,1);
       %            y(v_)           = v
-      dydx(v_)   = y(t_)-y(V_)/Ac;      % = theta
-      dydx(t_)   = y(M_)/(EI);          % = M/(EI)
-      dydx(M_)   = y(V_) - (P)*dydx(v_);% = V-P*diff(v)
-      dydx(V_)   = 0-k*y(v_);           % = qyloc
-      dydx(u_)   = y(fax_)/(AE);        % = u
-      dydx(fax_) = 0;                   % = faxial
+      dydx(M_)   = y(V_) - P*dydx(v_) ;
+      dydx(V_)   = 0-k*y(v_);        
+      dydx(t_)   =y(M_)/EI;
+      dydx(v_)   = dydx(M_)/Ac-y(t_);  
+      dydx(u_)   = y(fax_)/(AE);        % = diff(u)=P/AE
+      dydx(fax_) = 0;                   % = diff(axial)=0
+      
    end
 
 %% se definen las condiciones de frontera de la ecuacion diferencial

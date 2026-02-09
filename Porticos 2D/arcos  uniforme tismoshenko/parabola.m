@@ -1,27 +1,59 @@
- function R=calculos_parabolico(y,dydx,EI,Ac,M,V,a,b,L,h,qa,qb,DX,DY,GM)
-%--------------------------------------------------------------------------
-% CÁLCULO DE REACCIONES EN VIGA ARCO PARABÓLICO
-% Método de trabajo virtual (flexión + axial)
-%
-% Incógnitas:
-%   Rax : reacción horizontal en A
-%   Ray : reacción vertical en A
-%   Ma  : momento en A
-%
-% Reacciones en B se obtienen por equilibrio global
- syms x
-%% 2. ELEMENTO DIFERENCIAL DE LONGITUD DE ARCO
-ds=sqrt(1+dydx^2);
-%% esfuerzo cortante unitario
-%cos=1 ./ sqrt(1 + dydx.^2)
-Vu=1/ds;%% cortante unitario
-%sin=dydx ./ sqrt(1 + dydx.^2);
-Pu=dydx/ds;%% axial unitario
-%% Longitud funcion de arco 
+clc
+clear
+syms x1 x2 x3 y1 y2 y3 x
+%calculo de ecuacion parabola
+x1=0;y1=0;
+x2=2.5;y2=1.5;
+x3=4;y3=0.6;
+%{
+X=[x1^2,x1,1;
+   x2^2,x2,1; 
+   x3^2,x3,1]; 
+Y=[y1;y2;y3];
+coe=X^(-1)*Y;
+yp=coe(1)*x^2+coe(2)*x+coe(2);%funcion de arco positivo
+%}
+hx =(x1^2*y2 - x2^2*y1 - x1^2*y3 + x3^2*y1 + x2^2*y3 - x3^2*y2)/(2*(x1*y2 - x2*y1 - x1*y3 + x3*y1 + x2*y3 - x3*y2));
+ky =(x1^4*y2^2 - 2*x1^4*y2*y3 + x1^4*y3^2 + 4*x1^3*x2*y2*y3 - 4*x1^3*x2*y3^2 - 4*x1^3*x3*y2^2 + 4*x1^3*x3*y2*y3 - 2*x1^2*x2^2*y1*y2 - 2*x1^2*x2^2*y1*y3 - 2*x1^2*x2^2*y2*y3 + 6*x1^2*x2^2*y3^2 + 4*x1^2*x2*x3*y1*y2 + 4*x1^2*x2*x3*y1*y3 - 8*x1^2*x2*x3*y2*y3 - 2*x1^2*x3^2*y1*y2 - 2*x1^2*x3^2*y1*y3 + 6*x1^2*x3^2*y2^2 - 2*x1^2*x3^2*y2*y3 + 4*x1*x2^3*y1*y3 - 4*x1*x2^3*y3^2 + 4*x1*x2^2*x3*y1*y2 - 8*x1*x2^2*x3*y1*y3 + 4*x1*x2^2*x3*y2*y3 - 8*x1*x2*x3^2*y1*y2 + 4*x1*x2*x3^2*y1*y3 + 4*x1*x2*x3^2*y2*y3 + 4*x1*x3^3*y1*y2 - 4*x1*x3^3*y2^2 + x2^4*y1^2 - 2*x2^4*y1*y3 + x2^4*y3^2 - 4*x2^3*x3*y1^2 + 4*x2^3*x3*y1*y3 + 6*x2^2*x3^2*y1^2 - 2*x2^2*x3^2*y1*y2 - 2*x2^2*x3^2*y1*y3 - 2*x2^2*x3^2*y2*y3 - 4*x2*x3^3*y1^2 + 4*x2*x3^3*y1*y2 + x3^4*y1^2 - 2*x3^4*y1*y2 + x3^4*y2^2)/(4*(x1 - x2)*(x1 - x3)*(x2 - x3)*(x1*y2 - x2*y1 - x1*y3 + x3*y1 + x2*y3 - x3*y2));
+p =((x1 - x2)*(x1 - x3)*(x2 - x3))/(4*(x1*y2 - x2*y1 - x1*y3 + x3*y1 + x2*y3 - x3*y2));
+ 
+y=(x-hx)^2/(-4*p)+ky;
+focoy=ky-p;
+focox=hx;
 
-%% esfuerzo cortante caragas externa
-Vz=V*Vu; %% cortante cargas verticales
-Pz=V*Pu; %% axial cargas verticales
+dydxp=diff(y,x,1);%derivada 
+ds=sqrt(1+dydxp^2);% longitud d arco
+
+%componentes
+%cos=1 ./ sqrt(1 + dydx.^2)
+Vu=1/ds;%% cortante unitario    % cos(theta)
+%sin=dydx ./ sqrt(1 + dydx.^2); % sin(theta)
+Pu=dydxp/ds;%% axial unitario
+
+bf=25/1000;
+d=50/1000;
+E=210000000;
+Ae=bf*d;
+I=bf*d^3/12;
+EI=E*I;
+EA=E*Ae;
+G=81018518.3;
+Ac=Ae*5/6*G;
+qa=5;
+qb=15;
+a=0;
+b=x3;
+L=x3;
+h=y3;
+M = (-((qa - qb) * x^3) / (6 * L) + (qa * x^2) / 2);
+V = qa*x - (x^2*(qa - qb))/(2*L);
+Vz=Vu*V;
+Pz=Pu*V;
+
+DX=0;
+DY=0;
+GM=0;
+
 %% 1. DEFORMACIÓN VERTICAL (Qy = 1)
 AMxx=area_cuadraturas(a,b,matlabFunction((x*x/EI+Vu/Ac)*ds,"Vars", x)); % Deformación vertical por carga unitaria vetical
 AMxy=area_cuadraturas(a,b,matlabFunction((x*y/EI+Pu/Ac)*ds,"Vars", x)); % Deformación horizontal por carga unitaria vetical
@@ -77,4 +109,7 @@ if a<0
     Mb=-(-Rax*h+Ma-(-((qa - qb) * L^3) / (6 * L) + (qa * L^2) / 2)-Ray*L);
     R=[-Rbx;-Rby;Mb;Rax;Ray;Ma];
 end
+R1=calculos_parabolico(y,dydxp,EI,Ac,M,V,a,b,L,h,qa,qb,DX,DY,GM)
 
+
+K=k_rigidez(x1,x2,x3,y1,y2,y3,EI,Ac)

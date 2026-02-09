@@ -66,6 +66,18 @@ M = EI*(P - ksGAs)/ksGAs*diff(y, x, 2);
 V = D*M - P*D*y;
 Q = D*M;
 t = Q/ksGAs - D*y;
+F_TE2 = zeros(4);   % Inicialización matriz de rigidez tangent
+    [c1,c2,c3,c4,c5,c6]=solve(subs(y,x,0)==0,...% con sus respectivas condiciones de frontera
+                              subs(t,x,0)==0,...
+                              subs(y,x,L)==0,...
+                              subs(t,x,L)==0,...
+                              [C1,C2,C3,C4,C5,C6]);
+    % # se evaluan las reacciones horizontales y verticales y los momentos en los apoyos
+	F_TE2(:,i)=[subs(V,{C1,C2,C3,C4,C5,C6,x},{c1,c2,c3,c4,c5,c6,0}); % Y2
+               -subs(M,{C1,C2,C3,C4,C5,C6,x},{c1,c2,c3,c4,c5,c6,0}); % M2
+               -subs(V,{C1,C2,C3,C4,C5,C6,x},{c1,c2,c3,c4,c5,c6,L}); % Y2
+                subs(M,{C1,C2,C3,C4,C5,C6,x},{c1,c2,c3,c4,c5,c6,L})];% M2
+
 
 
 

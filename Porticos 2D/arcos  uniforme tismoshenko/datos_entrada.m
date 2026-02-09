@@ -7,7 +7,7 @@ XYG=123;
 g=9.8066502;      % aceleracion de la gravedad
 
 %% escalas de Dibujo la estructura y su deformada
-esc_def    = 7;          % escalamiento de la deformada
+esc_def    = 200;          % escalamiento de la deformada
 esc_faxial = 0.006;      % escalamiento del diagrama de axiales
 esc_V      = 1;          % escalamiento del diagrama de cortantes
 esc_M      = 0.9;        % escalamiento del diagrama de momentos
@@ -34,8 +34,8 @@ tipo_apoyo=[XYG,1;
 %% cordenadas de arco
 %xn=[-3 ,3.2,5.6];
 %yn=[2.5,5,3.5];
-xn=[0 ,4.3,8.6];
-yn=[0,3,0];
+xn=[0,2.5,4];
+yn=[0,1.5,0.6];
 L=xn(3)-xn(1);
 xa=xn(1);
 xb=xn(2);

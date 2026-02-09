@@ -112,8 +112,8 @@ for e = 1:nef
             dx_deta = sum(ddN_deta.*xe);   dy_deta = sum(ddN_deta.*ye);
 
             % Evaluación del Jacobiano
-            Je = [ dx_dxi    dy_dxi
-                   dx_deta   dy_deta ];
+     Je = [ dx_dxi   dx_deta
+           dy_dxi   dy_deta ];
             det_Je(pp,qq) = det(Je);
 
             % Evaluar P y Q en punto de Gauss (coordenadas naturales)
