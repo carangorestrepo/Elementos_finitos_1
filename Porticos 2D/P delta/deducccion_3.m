@@ -3,7 +3,7 @@ clear
 syms EI P ksGA x k C1 C2 C3 C4 C5 C6 xi
 
 %% PROPIEDADES DEL MATERIAL Y GEOMETRÍA
-E = 24870062;      % Módulo de elasticidad [kN/m²]
+E = 24870062.3;      % Módulo de elasticidad [kN/m²]
 G = 0.4*E;         % Módulo de cortante [kN/m²]
 I = 0.4^4/12;      % Inercia de la sección [m?]
 Ae = 0.4^2;        % Área efectiva [m²]

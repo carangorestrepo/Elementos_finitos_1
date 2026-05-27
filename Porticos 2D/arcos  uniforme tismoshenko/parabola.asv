@@ -88,7 +88,6 @@ AMMg = area_cuadraturas(a,b,matlabFunction((M/EI)*ds,"Vars", x));              %
 % Matriz de coeficientes
 %% 8. SISTEMA DE ECUACIONES DE COMPATIBILIDAD (método de las fuerzas)
 % Matriz de flexibilidad [F] (3x3)
-
 ec=[AMxx ,AMxy ,AMxg;  % Suma de fuerzas en Y
     AMyx ,AMyy ,AMyg;  % Suma de fuerzas en X
     AMx  ,AMy  ,AMg];  % Suma de momentos
@@ -96,17 +95,7 @@ ec=[AMxx ,AMxy ,AMxg;  % Suma de fuerzas en Y
 cein=[-AMMx-DY;
       -AMMy-DX;
       -AMMg-GM];
-% Condiciones de compatibilidad: [F]{X} + {D_ext} = {desplazamientos conocidos}
-% Los desplazamientos conocidos en A son [DY; DX; GM] (observar signos según
-% la dirección positiva de las redundantes). En este código, las redundantes
-% son: Ray (vertical), Rax (horizontal), Ma (momento). La ecuación resulta:
-%   [F] * [Ray; Rax; Ma] + D_ext = [DY; DX; GM]
-% Por tanto:
-%   [F] * [Ray; Rax; Ma] = [DY; DX; GM] - D_ext
-% En nuestro caso DY=DX=GM=0, así que:
-%   [F] * [Ray; Rax; Ma] = - D_ext
-% Resolviendo:
-
+% Resolución
 sol=ec\cein;
 Ma=sol(3);
 Ray=-sol(1);
@@ -129,7 +118,7 @@ if a<0
     Mb=-(-Rax*h+Ma-(-((qa - qb) * L^3) / (6 * L) + (qa * L^2) / 2)-Ray*L);
     R=[-Rbx;-Rby;Mb;Rax;Ray;Ma];
 end
+R1=calculos_parabolico(y,dydxp,EI,Ac,M,V,a,b,L,h,qa,qb,DX,DY,GM)
 
 
-
-
+K=k_rigidez(x1,x2,x3,y1,y2,y3,EI,Ac)

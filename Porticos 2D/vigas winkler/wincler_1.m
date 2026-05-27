@@ -26,7 +26,7 @@ b = 0;                          % Carga axial o para matriz de rigidez[kN/m]
 %syms Ac k y EI
 
 %despejo todo en funcion de M
-%V' == -k*v+q    (1) %Equilibrio de fuerzas cortantes
+%V' == -k*v+q  (1) %Equilibrio de fuerzas cortantes
 %M' == V       (2)  %%Relación momento-cortante
 %t' == M/EI    (3)  %Relación giro-momento
 %v' == t - V/Ac(4)  %Relación desplazamiento-giro
@@ -80,17 +80,17 @@ wi=-r^(1/n)*(sin((phi+2*pi*k1)/n));
 %M=cos(wi*x)*(C1*exp(wr*x)+C2*exp(-wr*x))+sin(wi*x)*(C3*exp(wr*x)+C4*exp(-wr*x));
 M=cos(wi*x)*(C1*cosh(wr*x)+C2*sinh(wr*x))+sin(wi*x)*(C3*cosh(wr*x)+C4*sinh(wr*x));
 
-n1=-(-(k*(((- 4*Ac^2 + EI*k)/(EI*k))^(1/2) - 1))/(2*Ac))^(1/2);
-n2=-( (k*(((- 4*Ac^2 + EI*k)/(EI*k))^(1/2) + 1))/(2*Ac))^(1/2);
-n3= (-(k*(((- 4*Ac^2 + EI*k)/(EI*k))^(1/2) - 1))/(2*Ac))^(1/2);
-n4= ( (k*(((- 4*Ac^2 + EI*k)/(EI*k))^(1/2) + 1))/(2*Ac))^(1/2);
+%n1=-(-(k*(((- 4*Ac^2 + EI*k)/(EI*k))^(1/2) - 1))/(2*Ac))^(1/2);
+%n2=-( (k*(((- 4*Ac^2 + EI*k)/(EI*k))^(1/2) + 1))/(2*Ac))^(1/2);
+%n3= (-(k*(((- 4*Ac^2 + EI*k)/(EI*k))^(1/2) - 1))/(2*Ac))^(1/2);
+%n4= ( (k*(((- 4*Ac^2 + EI*k)/(EI*k))^(1/2) + 1))/(2*Ac))^(1/2);
 
 %a=-(k/(2*Ac)- ((k/(2*Ac))^2-k/(EI))^(1/2) )^(1/2)
 
 %M=C1*exp(n1*x)+C2*exp(n2*x)+C3*exp(n3*x)+C4*exp(n4*x);
 EA=E*Ae;
 V=diff(M,x,1);
-v=-diff(V,x,1)/k;
+v=(q-diff(V,x,1))/k;
 t=V/Ac+diff(v,x,1);
 
 %se definen las ecuaciones diferenciales a carga axial
@@ -100,6 +100,7 @@ u=int(A/AE,x)+C6;
 
 %# Se calcula la matrix de rigidez
 K_TE2 = sym(zeros(6,6));
+F_TE2 = sym(zeros(6,1));
 N_u2 = sym(zeros(1,6));
 N_w2 = sym(zeros(1,6));
 N_t2 = sym(zeros(1,6));
@@ -124,6 +125,40 @@ for i = 1:6
 	N_u2(i) = subs(u,{C1,C2,C3,C4,C5,C6,x},{c1,c2,c3,c4,c5,c6,L*(1+xi)/2}); 
 end
 K_TE2=	double(K_TE2);
+q1=25;
+q2=30;
+q=(q2-q1)/L*x+q1;
+V=diff(M,x,1);
+v=(q-diff(V,x,1))/k;
+t=V/Ac+diff(v,x,1);
+
+[c1,c2,c3,c4,c5,c6]=solve(subs(u,x,0)==0,...
+                          subs(v,x,0)==0,...% con sus respectivas condiciones de frontera
+                          subs(t,x,0)==0,...
+                          subs(u,x,L)==0,...
+                          subs(v,x,L)==0,...
+                          subs(t,x,L)==0,...
+                          [C1,C2,C3,C4,C5,C6]);
+% # se evaluan las reacciones horizontales y verticales y los momentos en los apoyos
+F_TE2(:,1)=[-subs(A,{C1,C2,C3,C4,C5,C6,x},{c1,c2,c3,c4,c5,c6,0}); % X1
+             subs(V,{C1,C2,C3,C4,C5,C6,x},{c1,c2,c3,c4,c5,c6,0}); % Y2
+            -subs(M,{C1,C2,C3,C4,C5,C6,x},{c1,c2,c3,c4,c5,c6,0}); % M2
+             subs(A,{C1,C2,C3,C4,C5,C6,x},{c1,c2,c3,c4,c5,c6,L}); % X2 
+            -subs(V,{C1,C2,C3,C4,C5,C6,x},{c1,c2,c3,c4,c5,c6,L}); % Y2
+             subs(M,{C1,C2,C3,C4,C5,C6,x},{c1,c2,c3,c4,c5,c6,L})];% M2
+F_TE2=	double(F_TE2);
+
+
+% Carga trapezoidal
+v1 = diff(v,x);
+v2 = diff(v1,x);
+v3 = diff(v2,x);
+% Momento
+M = EI*v2 - (EI/Ac)*(q - k*v);
+% Cortante
+V = diff(M,x);
+% Giro
+t = v1 + V/Ac;
 
 %% cuadratura de Gauss-Legendre
 dx_dxi = L/2;              % jacobiano de la transformacion isoparametrica
