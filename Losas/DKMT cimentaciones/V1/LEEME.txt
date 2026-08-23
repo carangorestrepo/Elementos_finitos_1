@@ -1,0 +1,29 @@
+PAQUETE MODULAR ZAPATA DKMT
+==============================
+
+Ejecute:
+    main_zapata_DKMT.m
+
+Archivos:
+    main_zapata_DKMT.m
+    generar_malla_zapata.m
+    definir_cargas_zapata.m
+    evaluar_carga_zapata.m
+    resolver_zapata_DKMT_modular.m
+    elemento_DKMT_zapata.m
+    postproceso_zapata.m
+
+Correcciones incorporadas:
+- P, Mx y My se convierten en una presion lineal y se evaluan en Gauss.
+- El peso propio de la zapata actua en toda el area.
+- El peso del suelo solo actua fuera de la huella.
+- El peso del pedestal solo actua dentro de la huella.
+- Winkler actua solamente sobre w.
+- No se multiplica el balasto por el espesor.
+- No se usa factor artificial de rigidez 1000.
+- La malla es conforme a los bordes de la huella.
+- Se usa subplot, compatible con MATLAB anterior a R2019b.
+
+Limitacion:
+- El contacto suelo-zapata es lineal y permite traccion.
+- La presion nodal -ks*w es una recuperacion puntual aproximada.

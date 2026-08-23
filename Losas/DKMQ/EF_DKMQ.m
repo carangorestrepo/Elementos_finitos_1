@@ -27,6 +27,19 @@ EFtype = DKMQ;
 X = 1; Y = 2; Z = 3; % un par de constantes que ayudaran en la 
 ww= 1; tx= 2; ty= 3; % lectura del codigo
 
+
+%% ========================================================================
+% OPCIONES DE GRAFICA
+% ========================================================================
+graficar_malla       = true;
+graficar_matriz      = true;
+graficar_deformada   = true;
+graficar_momentos    = true;
+graficar_cortantes   = true;
+graficar_principales = true;
+graficar_qmax        = true;
+graficar_woodarmer   = true;
+graficar_movimientos = true;
 % Definimos la geometria de la losa
 %losa
 % ya tenemos en la memoria las variables
@@ -337,22 +350,37 @@ vect_mov = reshape(aa,3,nno)'; % vector de movimientos
 
 %% Dibujo la malla de elementos finitos y las deformaciones de esta
 
-xdef = escala*vect_mov; % posicion de la deformada
-figure; 
-hold on; 
-grid on;
-for e = 1:nef
-   fill3(xnod(LaG(e,[1 2 3 4 1]),X), ...
-         xnod(LaG(e,[1 2 3 4 1]),Y), ...
-         xdef(LaG(e,[1 2 3 4 1]),ww),...
-         xdef(LaG(e,[1 2 3 4 1]),ww)); %deformada
-end
-daspect([1 1 1]); % similar a axis equal, pero en 3D
-axis tight
-colormap jet
-title(sprintf('Deformada escalada %d veces',escala),'FontSize',20)
-view(3)
+%% ========================================================================
+% Deformada - VERSION RAPIDA
+%
+% Se dibuja toda la superficie deformada mediante un unico PATCH.
+% ========================================================================
+xdef = escala*vect_mov;
+if graficar_deformada
+    figure
+    hold on
+    grid on
+    box on
 
+    zdef = xdef(:,ww);
+
+    patch('Faces',LaG, ...
+          'Vertices',[xnod(:,X),xnod(:,Y),zdef], ...
+          'FaceVertexCData',zdef, ...
+          'FaceColor','interp', ...
+          'EdgeColor',[0.35 0.35 0.35], ...
+          'LineWidth',0.20);
+
+    daspect([1 1 1])
+    axis tight
+    colorbar
+    title(sprintf('Deformada escalada %g veces',escala),'FontSize',14)
+    xlabel('x')
+    ylabel('y')
+    zlabel('w')
+    view(3)
+    drawnow limitrate
+end
 %% Se calcula para cada elemento el vector de momentos en los puntos
 %% de Gauss (ecuacion 49)
 MxMyMxy = cell(nef,n_gl,n_gl);
@@ -514,34 +542,83 @@ colorbar('ylim', [min(Myast_inf) 0]);           % rango de colores a mostrar
 return; % bye, bye!
 
 %%
-function plot_M_or_Q(nef, xnod, LaG, variable, texto, angulos)
-    X = 1; Y = 2;
-    hold on; 
-    colorbar;
-    for e = 1:nef  
-       fill(xnod(LaG(e,:),X), xnod(LaG(e,:),Y), variable(LaG(e,:)));
+function plot_M_or_Q(nef,xnod,LaG,variable,texto,angulos,max_vectores)
+%=========================================================================
+% PLOT_M_OR_Q
+%
+% Version optimizada para mallas Q4.
+%
+% La version anterior creaba un objeto FILL por cada elemento. En mallas
+% grandes eso genera cientos o miles de objetos graficos y hace muy lenta
+% la visualizacion. Aqui toda la malla se representa mediante un unico
+% objeto PATCH.
+%
+% Si se suministran angulos, los vectores principales se submuestrean para
+% evitar crear miles de flechas QUIVER.
+%=========================================================================
+
+    X = 1;
+    Y = 2;
+
+    if nargin < 6
+        angulos = [];
     end
+
+    if nargin < 7 || isempty(max_vectores)
+        max_vectores = 300;
+    end
+
+    variable = variable(:);
+
+    hold on
+    box on
+
+    %% ====================================================================
+    % UN SOLO PATCH PARA TODA LA MALLA
+    % ====================================================================
+    patch('Faces',LaG, ...
+          'Vertices',xnod(:,1:2), ...
+          'FaceVertexCData',variable, ...
+          'FaceColor','interp', ...
+          'EdgeColor','none');
+
     axis equal tight
-    colormap jet
-    title(texto, 'FontSize',20);
-   
-    esc = 0.5;
-    if nargin == 6
-        norma = 1; % = variable % si se quiere proporcional
-        for i = 1:length(angulos)
-            % se indica la flecha de la direccion principal
-            quiver(xnod(:,X),xnod(:,Y),...             
-                norma.*cos(angulos{i}), norma.*sin(angulos{i}),... 
-                esc, ...                  % con una escala esc
-                'k',...                   % de color negro
-                'ShowArrowHead','off',... % una flecha sin cabeza
-                'LineWidth',2, ...        % con un ancho de linea 2
-                'Marker','.');            % y en el punto (x,y) poner un punto '.'
-            
-            % la misma flecha girada 180 grados
-            quiver(xnod(:,X),xnod(:,Y),...             
-                norma.*cos(angulos{i}+pi), norma.*sin(angulos{i}+pi),... 
-                esc,'k', 'ShowArrowHead','off', 'LineWidth',2, 'Marker','.');                    
-        end            
+    title(texto,'FontSize',13)
+    colorbar
+
+    %% ====================================================================
+    % DIRECCIONES PRINCIPALES / CORTANTES
+    % ====================================================================
+    if ~isempty(angulos)
+
+        nno = size(xnod,1);
+        salto = max(1,ceil(nno/max_vectores));
+        nodos_plot = 1:salto:nno;
+
+        Lx = max(xnod(:,X))-min(xnod(:,X));
+        Ly = max(xnod(:,Y))-min(xnod(:,Y));
+        Lref = 0.025*max(Lx,Ly);
+
+        for ii = 1:length(angulos)
+
+            ang = angulos{ii};
+            ang = ang(:);
+
+            quiver(xnod(nodos_plot,X), ...
+                   xnod(nodos_plot,Y), ...
+                   Lref*cos(ang(nodos_plot)), ...
+                   Lref*sin(ang(nodos_plot)), ...
+                   0,'k', ...
+                   'ShowArrowHead','off', ...
+                   'LineWidth',0.65);
+
+            quiver(xnod(nodos_plot,X), ...
+                   xnod(nodos_plot,Y), ...
+                  -Lref*cos(ang(nodos_plot)), ...
+                  -Lref*sin(ang(nodos_plot)), ...
+                   0,'k', ...
+                   'ShowArrowHead','off', ...
+                   'LineWidth',0.65);
+        end
     end
 end

@@ -3,7 +3,6 @@ clear
 syms x1 x2 x3 y1 y2 y3 x C1 C2 xa
 %calculo de ecuacion parabola
 
-
 %% 2. COORDENADAS DE LA PARÁBOLA (tres puntos)
 % Puntos de paso del arco (pueden modificarse)
 x1 = 0;   y1 = 0;      % punto inicial (apoyo A)
@@ -17,7 +16,7 @@ X = [x1^2,x1,1;
 Y = [y1;y2;y3];
 coe=X^(-1)*Y;
 %}
-y=coe(1)*x^2+coe(2)*x+coe(2);%funcion de arco 
+y=coe(1)*x^2+coe(2)*x+coe(3);%funcion de arco 
 
 %% 4. FUNCIONES GEOMÉTRICAS DEL ARCO (derivada, longitud diferencial)
 dydx   = diff(y, x, 1);      % pendiente dy/dx
@@ -34,14 +33,14 @@ Pu = tanphi / sqrt(1 + tanphi^2); % = sin(?)
 bf = 25/1000; % ancho de seccion viga (m)
 d = 50/1000;  % altura de seccinn viga (m)
 E=210000000;  % modulo de elaticidad elemento (kPa)
-Ae=bf*d;      % Area elemento (m4)
-I=bf*d^3/12;  % inercia elemento (m2)
+Ae=bf*d;      % Area elemento (m2)
+I=bf*d^3/12;  % inercia elemento (m4)
 EI=E*I;
 EA=E*Ae;
 G=0.4*E;
 alfaGA = (5/6)*Ae*G; % rigidez a cortante (factor de forma 5/6 para sección rectangular)
-qa = 1;          % valor inicial de la carga (en x=0)
-qb = 15;         % valor final (en x=L)
+qa = 20;          % valor inicial de la carga (en x=0)
+qb = 25;         % valor final (en x=L)
 a  = 0;          % límite inferior de integración (x inicial)
 b  = x3;         % límite superior (x final)
 L  = x3;         % longitud proyectada en x
